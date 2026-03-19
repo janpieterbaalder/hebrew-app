@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-green-darkest: #235D3A;
+  --color-green-dark: #397D54;
+  --color-green: #73C088;
+  --color-green-light: #A8E0B7;
+  --color-green-lightest: #C8EAD1;
+  --color-primary: #73C088;
+  --color-primary-light: #A8E0B7;
+  --color-primary-dark: #397D54;
+  --color-accent: #A8E0B7;
+  --color-surface: #0f1a14;
+  --color-surface-light: #162119;
+  --color-surface-lighter: #1c2b22;
+  --color-danger: #ef4444;
+  --font-sans: var(--font-geist-sans);
+  --font-hebrew: "SBL Hebrew", "Frank Ruehl CLM", "Ezra SIL", "Times New Roman", serif;
+}
+
+body {
+  background: #0a1410;
+  color: #e2efe7;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.hebrew {
+  font-family: var(--font-hebrew);
+  direction: rtl;
+  unicode-bidi: bidi-override;
+}
+
+.hebrew-large {
+  font-family: var(--font-hebrew);
+  direction: rtl;
+  unicode-bidi: bidi-override;
+  font-size: 2.5rem;
+  line-height: 1.4;
+}
+
+.hebrew-xl {
+  font-family: var(--font-hebrew);
+  direction: rtl;
+  unicode-bidi: bidi-override;
+  font-size: 4rem;
+  line-height: 1.2;
+}
+
+/* Gradient utilities */
+.gradient-card {
+  background: linear-gradient(135deg, #162119 0%, #1c2b22 100%);
+  border-color: #235D3A;
+}
+
+.gradient-green {
+  background: linear-gradient(135deg, #235D3A 0%, #397D54 100%);
+}
+
+.gradient-green-light {
+  background: linear-gradient(135deg, #397D54 0%, #73C088 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(180deg, #0f1a14 0%, #162119 50%, #1c2b22 100%);
+}
