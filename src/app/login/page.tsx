@@ -10,11 +10,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     const supabase = createClient();
@@ -24,6 +26,9 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+          },
         });
         if (error) {
           if (error.message.includes("already registered")) {
@@ -50,6 +55,10 @@ export default function LoginPage() {
         }
       }
 
+      if (isRegister) {
+        setSuccess("Check je e-mail voor een bevestigingslink!");
+        return;
+      }
       router.push("/");
     } catch {
       setError("Er is een fout opgetreden. Probeer het opnieuw.");
@@ -111,6 +120,12 @@ export default function LoginPage() {
                 className="w-full px-4 py-2.5 bg-surface border border-green-darkest/50 rounded-lg text-green-lightest placeholder:text-green-light/30 focus:outline-none focus:border-green-dark focus:ring-1 focus:ring-green-dark transition-colors"
               />
             </div>
+
+            {success && (
+              <div className="bg-green-900/30 border border-green/30 rounded-lg px-4 py-3 text-green-light text-sm">
+                {success}
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-900/30 border border-red-500/30 rounded-lg px-4 py-3 text-red-300 text-sm">
