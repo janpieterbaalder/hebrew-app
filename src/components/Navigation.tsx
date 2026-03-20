@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: "🏠" },
@@ -13,6 +14,7 @@ const navItems = [
 
 export default function Navigation() {
   const pathname = usePathname();
+  const { user, signOut } = useAuth();
 
   return (
     <nav className="bg-surface border-b border-green-darkest/50 shadow-lg shadow-black/20">
@@ -48,7 +50,45 @@ export default function Navigation() {
             })}
           </div>
 
-          <div className="md:hidden">
+          <div className="hidden md:flex items-center gap-3">
+            {user ? (
+              <>
+                <span className="text-sm text-green-light/60 truncate max-w-[180px]">
+                  {user.email}
+                </span>
+                <button
+                  onClick={() => signOut()}
+                  className="text-sm text-green-light/70 hover:text-green-light px-3 py-1.5 rounded-lg hover:bg-surface-light transition-colors"
+                >
+                  Uitloggen
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="text-sm text-green-light/70 hover:text-green-light px-3 py-1.5 rounded-lg hover:bg-surface-light transition-colors"
+              >
+                Inloggen
+              </Link>
+            )}
+          </div>
+
+          <div className="md:hidden flex items-center gap-2">
+            {user ? (
+              <button
+                onClick={() => signOut()}
+                className="text-xs text-green-light/60 hover:text-green-light px-2 py-1 rounded-lg hover:bg-surface-light transition-colors"
+              >
+                Uitloggen
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="text-xs text-green-light/60 hover:text-green-light px-2 py-1 rounded-lg hover:bg-surface-light transition-colors"
+              >
+                Inloggen
+              </Link>
+            )}
             <MobileMenu pathname={pathname} />
           </div>
         </div>

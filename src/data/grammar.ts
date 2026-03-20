@@ -1,9 +1,19 @@
+export interface GrammarExercise {
+  type: 'multiple-choice' | 'fill-in' | 'match';
+  question: string;
+  options?: string[];
+  correctAnswer: string;
+  pairs?: { left: string; right: string }[];
+  explanation?: string;
+}
+
 export interface GrammarLesson {
   id: string;
   title: string;
   order: number;
   summary: string;
   sections: GrammarSection[];
+  exercises?: GrammarExercise[];
 }
 
 export interface GrammarSection {
@@ -59,6 +69,43 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het bepaald lidwoord in het Hebreeuws?',
+        options: ['אֶת', 'הַ', 'לְ', 'בְּ'],
+        correctAnswer: 'הַ',
+        explanation: 'Het bepaald lidwoord in het Hebreeuws is הַ (ha). Het wordt als prefix aan het zelfstandig naamwoord geschreven.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Hoe zeg je "de koning" in het Hebreeuws?',
+        options: ['מֶלֶךְ', 'הַמֶּלֶךְ', 'לַמֶּלֶךְ', 'בַּמֶּלֶךְ'],
+        correctAnswer: 'הַמֶּלֶךְ',
+        explanation: 'מֶלֶךְ betekent "een koning". Met het lidwoord הַ wordt het הַמֶּלֶךְ (hammelekh) = "de koning". Let op de dagesh in de מ.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Waarom verandert de klinker van הַ bij het woord אִישׁ (man)?',
+        options: ['Omdat אִישׁ een vrouwelijk woord is', 'Omdat א een gutturale letter is die geen dagesh accepteert', 'Omdat het woord te kort is', 'Omdat het een eigennaam is'],
+        correctAnswer: 'Omdat א een gutturale letter is die geen dagesh accepteert',
+        explanation: 'Gutturale letters (א, ה, ח, ע, ר) accepteren geen dagesh. Daarom krijgt het lidwoord een qamats: הָאִישׁ in plaats van הַאִּישׁ.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent מֶלֶךְ (zonder lidwoord)?',
+        options: ['de koning', 'een koning', 'koningen', 'het koninkrijk'],
+        correctAnswer: 'een koning',
+        explanation: 'Het Hebreeuws heeft geen onbepaald lidwoord. Een woord zonder הַ is automatisch onbepaald, dus מֶלֶךְ = "een koning".',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Welke vorm is correct voor "de berg"?',
+        options: ['הַהַר', 'הָהָר', 'הֶהַר', 'הַרַר'],
+        correctAnswer: 'הָהָר',
+        explanation: 'הַר begint met de gutturale letter ה. Gutturalen accepteren geen dagesh, dus de klinker verandert: הָהָר (hahar).',
+      },
+    ],
   },
   {
     id: "geslacht-getal",
@@ -100,6 +147,43 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Welke uitgang is typisch voor vrouwelijke woorden in het Hebreeuws?',
+        options: ['ִים-', 'ָה-', 'וּ-', 'ִי-'],
+        correctAnswer: 'ָה-',
+        explanation: 'De meeste vrouwelijke woorden eindigen op ָה- (ah) of ת- (t/et). Bijvoorbeeld: מַלְכָּה (malkah) = koningin.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is de mannelijke meervoudsuitgang?',
+        options: ['וֹת-', 'ָה-', 'ִים-', 'ַיִם-'],
+        correctAnswer: 'ִים-',
+        explanation: 'Mannelijk meervoud eindigt op ִים- (im). Voorbeeld: סוּס → סוּסִים (paard → paarden).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het meervoud van מֶלֶךְ (koning)?',
+        options: ['מְלָכוֹת', 'מְלָכִים', 'מַלְכֵּי', 'מֶלֶכַיִם'],
+        correctAnswer: 'מְלָכִים',
+        explanation: 'מֶלֶךְ is mannelijk, dus het meervoud is מְלָכִים (melakhim) met de uitgang ִים-.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is bijzonder aan het woord שָׁנָה (jaar) in meervoud?',
+        options: ['Het heeft geen meervoud', 'Het is vrouwelijk maar krijgt mannelijke meervoudsuitgang: שָׁנִים', 'Het wordt שָׁנוֹת', 'Het verandert niet'],
+        correctAnswer: 'Het is vrouwelijk maar krijgt mannelijke meervoudsuitgang: שָׁנִים',
+        explanation: 'שָׁנָה is vrouwelijk (uitgang ָה-), maar het meervoud is שָׁנִים met de mannelijke uitgang ִים-. Dit is een belangrijke uitzondering.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wanneer wordt de tweevoud (dualis) uitgang יִם- gebruikt?',
+        options: ['Bij alle meervouden', 'Bij lichaamsdelen en tijdseenheden die in paren voorkomen', 'Alleen bij vrouwelijke woorden', 'Bij dieren'],
+        correctAnswer: 'Bij lichaamsdelen en tijdseenheden die in paren voorkomen',
+        explanation: 'De dualis (יִם-) wordt gebruikt voor lichaamsdelen en tijdseenheden die in paren voorkomen, zoals יָדַיִם (twee handen) en עֵינַיִם (twee ogen).',
+      },
+    ],
   },
   {
     id: "constructus",
@@ -123,6 +207,36 @@ export const grammarLessons: GrammarLesson[] = [
           { hebrew: "בֵּית אִישׁ", transliteration: "bet 'ish", dutch: "een huis van een man" },
           { hebrew: "בֵּית הָאִישׁ", transliteration: "bet ha'ish", dutch: "het huis van de man", explanation: "הָאִישׁ is bepaald → hele verbinding is bepaald." },
         ],
+      },
+    ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat drukt de status constructus uit?',
+        options: ['Een bevel', 'Bezit of relatie tussen twee woorden', 'Een vraag', 'Verleden tijd'],
+        correctAnswer: 'Bezit of relatie tussen twee woorden',
+        explanation: 'De constructus-verbinding koppelt twee woorden om bezit of relatie uit te drukken, zoals "huis van de koning" (בֵּית הַמֶּלֶךְ).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is de constructusvorm van בַּיִת (huis)?',
+        options: ['בַּיִת', 'בֵּית', 'הַבַּיִת', 'בָּתִּים'],
+        correctAnswer: 'בֵּית',
+        explanation: 'In constructus wordt בַּיִת verkort tot בֵּית. Het eerste woord (nomen regens) verliest vaak klinkers.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Waar komt het lidwoord הַ in een constructus-verbinding?',
+        options: ['Op het eerste woord', 'Op het tweede woord', 'Op beide woorden', 'Het lidwoord wordt nooit gebruikt'],
+        correctAnswer: 'Op het tweede woord',
+        explanation: 'Het lidwoord הַ komt NOOIT op het eerste woord (nomen regens). Het kan alleen op het tweede woord (nomen rectum) staan.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent דְּבַר יְהוָה?',
+        options: ['de koning van God', 'het huis van de HEER', 'het woord van de HEER', 'de wet van Mozes'],
+        correctAnswer: 'het woord van de HEER',
+        explanation: 'דְּבַר is de constructusvorm van דָּבָר (woord), en יְהוָה is de naam van God (HEER). Samen: "het woord van de HEER".',
       },
     ],
   },
@@ -169,6 +283,43 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Welke drie voorzetsels worden als prefix aan het woord geplakt?',
+        options: ['אֶת, עַל, מִן', 'בְּ, לְ, כְּ', 'הַ, וְ, שֶׁ', 'אֶל, עַד, בֵּין'],
+        correctAnswer: 'בְּ, לְ, כְּ',
+        explanation: 'De drie prefix-voorzetsels zijn: בְּ (in/met), לְ (naar/voor), כְּ (als/zoals). Ze worden direct aan het woord geschreven.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat gebeurt er als לְ gecombineerd wordt met הַמֶּלֶךְ (de koning)?',
+        options: ['לְהַמֶּלֶךְ', 'לַמֶּלֶךְ', 'לוֹמֶלֶךְ', 'לְמֶלֶךְ'],
+        correctAnswer: 'לַמֶּלֶךְ',
+        explanation: 'Als een prefix-voorzetsel gecombineerd wordt met een woord met het lidwoord, wordt het lidwoord geabsorbeerd: לְ + הַמֶּלֶךְ → לַמֶּלֶךְ.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent het suffix וֹ- aan een werkwoord of voorzetsel?',
+        options: ['mijn', 'jouw (m)', 'zijn', 'haar'],
+        correctAnswer: 'zijn',
+        explanation: 'Het suffix וֹ- verwijst naar de 3e persoon mannelijk enkelvoud (zijn/hem). Voorbeeld: סוּסוֹ = zijn paard.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Hoe zeg je "aan ons" met het voorzetsel לְ?',
+        options: ['לִי', 'לְךָ', 'לָנוּ', 'לָהֶם'],
+        correctAnswer: 'לָנוּ',
+        explanation: 'Het suffix ָנוּ- is de 1e persoon meervoud. לְ + suffix ָנוּ = לָנוּ (aan ons).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent סוּסִי?',
+        options: ['een paard', 'het paard', 'mijn paard', 'zijn paard'],
+        correctAnswer: 'mijn paard',
+        explanation: 'Het suffix ִי- is de 1e persoon enkelvoud (mijn). סוּס + ִי = סוּסִי (mijn paard).',
+      },
+    ],
   },
   {
     id: "werkwoord-intro",
@@ -200,6 +351,36 @@ export const grammarLessons: GrammarLesson[] = [
             ["Hitpa'el", "הִתְפַּעֵל", "Reflexief", "הִתְפַּקֵּד - hij monsterde zich"],
           ],
         },
+      },
+    ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Waarop zijn bijna alle Hebreeuwse werkwoorden gebaseerd?',
+        options: ['Een tweeletter-wortel', 'Een drieletter-wortel', 'Een vierletter-wortel', 'Een prefix'],
+        correctAnswer: 'Een drieletter-wortel',
+        explanation: 'Bijna alle Hebreeuwse werkwoorden zijn gebaseerd op een wortel van drie medeklinkers. Door klinkers en voor-/achtervoegsels toe te voegen ontstaan verschillende vormen.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Hoeveel werkwoordsstammen (binyanim) heeft het Hebreeuws?',
+        options: ['3', '5', '7', '10'],
+        correctAnswer: '7',
+        explanation: 'Het Hebreeuws heeft zeven werkwoordsstammen: Pa\'al (Qal), Nif\'al, Pi\'el, Pu\'al, Hif\'il, Hof\'al en Hitpa\'el.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Welke stam is de basisstam (actief)?',
+        options: ['Nif\'al', 'Pi\'el', 'Pa\'al (Qal)', 'Hif\'il'],
+        correctAnswer: 'Pa\'al (Qal)',
+        explanation: 'De Pa\'al of Qal stam is de basisstam en drukt de eenvoudige actieve betekenis uit.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Welke woorden komen allemaal van de wortel מ-ל-כ?',
+        options: ['מֶלֶךְ, מָלַךְ, מַלְכָּה', 'כָּתַב, מִכְתָּב, כְּתָב', 'שָׁמַר, שֹׁמֵר, מִשְׁמָר', 'דָּבָר, דִּבֵּר, מִדְבָּר'],
+        correctAnswer: 'מֶלֶךְ, מָלַךְ, מַלְכָּה',
+        explanation: 'מֶלֶךְ (koning), מָלַךְ (hij regeerde), מַלְכָּה (koningin) delen allemaal de wortel מ-ל-כ (regeren/koning).',
       },
     ],
   },
@@ -236,6 +417,43 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat drukt het perfectum uit?',
+        options: ['Een toekomstige handeling', 'Een voltooide handeling', 'Een bevel', 'Een wens'],
+        correctAnswer: 'Een voltooide handeling',
+        explanation: 'Het perfectum drukt een voltooide handeling uit, vergelijkbaar met de verleden tijd in het Nederlands.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Hoe wordt het perfectum gevormd?',
+        options: ['Door prefixen aan de stam toe te voegen', 'Door suffixen aan de stam toe te voegen', 'Door het werkwoord te verdubbelen', 'Door een hulpwerkwoord toe te voegen'],
+        correctAnswer: 'Door suffixen aan de stam toe te voegen',
+        explanation: 'Het perfectum gebruikt suffixen (achtervoegsels) om persoon en getal aan te geven.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is de 1e persoon enkelvoud van שָׁמַר (bewaken)?',
+        options: ['שָׁמַר', 'שָׁמְרָה', 'שָׁמַרְתִּי', 'שָׁמְרוּ'],
+        correctAnswer: 'שָׁמַרְתִּי',
+        explanation: 'De 1e persoon enkelvoud perfectum heeft het suffix ְתִּי-. Dus שָׁמַר + תִּי = שָׁמַרְתִּי (ik bewaakte).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Welke vorm is de 3e persoon mannelijk enkelvoud perfectum?',
+        options: ['De vorm met suffix ָה-', 'De basisvorm zonder suffix', 'De vorm met prefix יִ-', 'De vorm met suffix וּ-'],
+        correctAnswer: 'De basisvorm zonder suffix',
+        explanation: 'De 3e persoon mannelijk enkelvoud perfectum is de basisvorm van het werkwoord, zonder suffix: שָׁמַר = hij bewaakte.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent בָּרָא אֱלֹהִים in Genesis 1:1?',
+        options: ['God zal scheppen', 'God schept', 'God schiep', 'God had geschapen'],
+        correctAnswer: 'God schiep',
+        explanation: 'בָּרָא is het perfectum van het werkwoord "scheppen". Het perfectum duidt hier een voltooide handeling aan: "God schiep".',
+      },
+    ],
   },
   {
     id: "imperfectum",
@@ -270,6 +488,43 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Hoe wordt het imperfectum gevormd?',
+        options: ['Met suffixen aan de stam', 'Met prefixen (en soms suffixen)', 'Zonder aanpassingen', 'Met een hulpwerkwoord'],
+        correctAnswer: 'Met prefixen (en soms suffixen)',
+        explanation: 'Het imperfectum gebruikt prefixen om persoon en getal aan te geven. Sommige vormen hebben ook suffixen.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Welk prefix hoort bij de 3e persoon mannelijk enkelvoud imperfectum?',
+        options: ['אֶ-', 'תִּ-', 'יִ-', 'נִ-'],
+        correctAnswer: 'יִ-',
+        explanation: 'De 3e persoon mannelijk enkelvoud imperfectum heeft het prefix יִ-. Voorbeeld: יִשְׁמֹר = hij zal bewaken.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent לֹא תִּרְצָח?',
+        options: ['Hij zal niet doden', 'Gij zult niet doodslaan', 'Ik zal niet doden', 'Zij zullen niet doden'],
+        correctAnswer: 'Gij zult niet doodslaan',
+        explanation: 'לֹא + imperfectum drukt een permanent verbod uit. תִּרְצָח heeft prefix תִּ- (2e persoon): "gij zult niet doodslaan".',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Welk prefix hoort bij de 1e persoon enkelvoud imperfectum?',
+        options: ['יִ-', 'תִּ-', 'נִ-', 'אֶ-'],
+        correctAnswer: 'אֶ-',
+        explanation: 'De 1e persoon enkelvoud imperfectum heeft het prefix אֶ-. Voorbeeld: אֶשְׁמֹר = ik zal bewaken.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Welke betekenissen kan het imperfectum uitdrukken?',
+        options: ['Alleen toekomst', 'Alleen verleden tijd', 'Toekomst, herhaling, wens, mogelijkheid', 'Alleen geboden'],
+        correctAnswer: 'Toekomst, herhaling, wens, mogelijkheid',
+        explanation: 'Het imperfectum is veelzijdig: het drukt toekomst, herhaling, wens, mogelijkheid of onvoltooide handeling uit.',
+      },
+    ],
   },
   {
     id: "waw-consecutivum",
@@ -293,6 +548,43 @@ export const grammarLessons: GrammarLesson[] = [
           { hebrew: "וְשָׁמַרְתָּ", transliteration: "weshamarta", dutch: "en jij zult bewaren", explanation: "Perfectum + waw → toekomstige betekenis." },
           { hebrew: "וְאָהַבְתָּ אֵת יְהוָה אֱלֹהֶיךָ", transliteration: "we'ahavta 'et YHWH 'elohekha", dutch: "en gij zult de HEER uw God liefhebben", explanation: "Deuteronomium 6:5" },
         ],
+      },
+    ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat doet de waw-consecutivum?',
+        options: ['Het verbindt twee zinnen', 'Het keert de tijdswaarde van een werkwoord om', 'Het maakt een werkwoord passief', 'Het versterkt het werkwoord'],
+        correctAnswer: 'Het keert de tijdswaarde van een werkwoord om',
+        explanation: 'De waw-consecutivum keert de tijdswaarde om: imperfectum wordt verleden tijd (wayyiqtol), perfectum wordt toekomst (weqatal).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is de standaard verhalende vorm in de Bijbel?',
+        options: ['Perfectum', 'Imperfectum', 'Wayyiqtol (waw-consecutivum + imperfectum)', 'Participium'],
+        correctAnswer: 'Wayyiqtol (waw-consecutivum + imperfectum)',
+        explanation: 'De wayyiqtol-vorm (וַיִּ- + imperfectum) is de standaard narratieve vorm. Het drukt verleden tijd uit in verhalen.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent וַיֹּאמֶר אֱלֹהִים?',
+        options: ['En God zal zeggen', 'En God zei', 'God spreekt', 'God had gezegd'],
+        correctAnswer: 'En God zei',
+        explanation: 'וַיֹּאמֶר is wayyiqtol van אמר. De waw-consecutivum + imperfectum geeft verleden tijd: "en God zei".',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat drukt וְ + perfectum (weqatal) uit?',
+        options: ['Verleden tijd', 'Toekomstige of herhaalde betekenis', 'Een vraag', 'Een ontkenning'],
+        correctAnswer: 'Toekomstige of herhaalde betekenis',
+        explanation: 'וְ + perfectum (weqatal) geeft toekomstige of herhaalde betekenis. Het komt voor in beloften, wetten en instructies.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'In welk Bijbelvers komt וַיְהִי אוֹר voor?',
+        options: ['Genesis 1:1', 'Genesis 1:3', 'Genesis 2:1', 'Exodus 1:1'],
+        correctAnswer: 'Genesis 1:3',
+        explanation: 'וַיְהִי אוֹר ("en er was licht") staat in Genesis 1:3. Het is een wayyiqtol-vorm van היה.',
       },
     ],
   },
@@ -348,6 +640,29 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het patroon van het actief participium Qal (mannelijk enkelvoud)?',
+        options: ['קָטוּל (qatul)', 'קֹטֵל (qotel)', 'קְטֹל (qetol)', 'קִטֵּל (qittel)'],
+        correctAnswer: 'קֹטֵל (qotel)',
+        explanation: 'Het actief participium Qal heeft het patroon קֹטֵל (qotel). Voorbeeld: שֹׁמֵר (bewakend/bewaker).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent בָּרוּךְ אַתָּה?',
+        options: ['Jij zegent', 'Gezegend zijt gij', 'Jij werd gezegend', 'Zegen mij'],
+        correctAnswer: 'Gezegend zijt gij',
+        explanation: 'בָּרוּךְ is een passief participium (patroon קָטוּל) van ברך. Het drukt een toestand uit: "gezegend".',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Hoe functioneert het participium als bijvoeglijk naamwoord?',
+        options: ['Het staat VOOR het zelfstandig naamwoord zonder lidwoord', 'Het staat NA het zelfstandig naamwoord en stemt overeen in geslacht, getal en bepaaldheid', 'Het staat altijd aan het begin van de zin', 'Het krijgt een speciaal prefix'],
+        correctAnswer: 'Het staat NA het zelfstandig naamwoord en stemt overeen in geslacht, getal en bepaaldheid',
+        explanation: 'Als bijvoeglijk naamwoord staat het participium NA het zelfstandig naamwoord en stemt het overeen in geslacht, getal en bepaaldheid: הָאִישׁ הַכֹּתֵב (de schrijvende man).',
+      },
+    ],
   },
   {
     id: "infinitief",
@@ -399,6 +714,29 @@ export const grammarLessons: GrammarLesson[] = [
           { hebrew: "שָׁמוֹר תִּשְׁמְרוּן", transliteration: "shamor tishmerun", dutch: "jullie zullen zorgvuldig bewaken", explanation: "Deuteronomium 6:17 - versterking door herhaling." },
           { hebrew: "הָלוֹךְ וְגָדֵל", transliteration: "halokh wegadel", dutch: "steeds groter wordend (gaande en groeiend)", explanation: "Twee infinitieven absolutus om progressie uit te drukken." },
         ],
+      },
+    ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat is de meest voorkomende combinatie met de infinitivus constructus?',
+        options: ['בְּ + infinitief = "toen..."', 'לְ + infinitief = "om te..."', 'כְּ + infinitief = "zoals..."', 'מִן + infinitief = "van..."'],
+        correctAnswer: 'לְ + infinitief = "om te..."',
+        explanation: 'De combinatie לְ + infinitivus constructus ("om te...") is de meest voorkomende. Voorbeeld: לִשְׁמֹר = om te bewaken.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent מוֹת תָּמוּת (Genesis 2:17)?',
+        options: ['Je zult sterven', 'Je zult zeker sterven', 'Sterf!', 'Hij stierf'],
+        correctAnswer: 'Je zult zeker sterven',
+        explanation: 'De infinitivus absolutus voor het werkwoord versterkt de betekenis (emfatisch). מוֹת (inf. abs.) + תָּמוּת (imperfectum) = "je zult zeker sterven".',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat betekent בְּ + infinitivus constructus?',
+        options: ['om te...', 'toen... / terwijl...', 'voordat...', 'nadat...'],
+        correctAnswer: 'toen... / terwijl...',
+        explanation: 'בְּ + infinitivus constructus drukt "toen" of "terwijl" uit. Voorbeeld: בִּבְרֹא אֱלֹהִים = "toen God schiep".',
       },
     ],
   },
@@ -461,6 +799,29 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Voor welke persoon wordt de imperatief gebruikt?',
+        options: ['1e persoon (ik/wij)', '2e persoon (jij/jullie)', '3e persoon (hij/zij)', 'Alle personen'],
+        correctAnswer: '2e persoon (jij/jullie)',
+        explanation: 'De imperatief wordt alleen gebruikt voor directe bevelen aan de 2e persoon (jij/jullie).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het verschil tussen אַל + jussief en לֹא + imperfectum?',
+        options: ['Er is geen verschil', 'אַל is voor specifiek verbod, לֹא voor permanent verbod', 'אַל is voor vragen, לֹא voor bevelen', 'אַל is voor vrouwelijk, לֹא voor mannelijk'],
+        correctAnswer: 'אַל is voor specifiek verbod, לֹא voor permanent verbod',
+        explanation: 'אַל + jussief = verbod voor een specifieke situatie ("doe het nu niet"). לֹא + imperfectum = permanent verbod ("doe het nooit").',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat drukt de cohortatief uit?',
+        options: ['Een bevel aan de 2e persoon', 'Een wens voor de 3e persoon', 'Een wens of voornemen voor de 1e persoon', 'Een verbod'],
+        correctAnswer: 'Een wens of voornemen voor de 1e persoon',
+        explanation: 'De cohortatief drukt een wens of voornemen uit voor de 1e persoon: "laat mij...", "laten wij...". Gevormd door ָה- toe te voegen aan het imperfectum.',
+      },
+    ],
   },
   {
     id: "nifal",
@@ -514,6 +875,22 @@ export const grammarLessons: GrammarLesson[] = [
           { hebrew: "נִגְלָה כְבוֹד יְהוָה", transliteration: "niglah kevod YHWH", dutch: "de heerlijkheid van de HEER werd geopenbaard", explanation: "Jesaja 40:5 - Nif'al van גלה (passief)." },
           { hebrew: "וַיִּשָּׁבַע יְהוָה", transliteration: "wayyishava' YHWH", dutch: "en de HEER zwoer", explanation: "Nif'al van שׁבע - eigen betekenis ('zweren'), niet passief." },
         ],
+      },
+    ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat zijn de drie hoofdbetekenissen van de Nif\'al?',
+        options: ['Causatief, intensief, declaratief', 'Passief, reflexief, wederkerig', 'Actief, toekomstig, herhaald', 'Bevel, wens, verbod'],
+        correctAnswer: 'Passief, reflexief, wederkerig',
+        explanation: 'De Nif\'al heeft drie hoofdbetekenissen: passief ("hij werd bewaakt"), reflexief ("hij bewaakte zichzelf"), wederkerig ("zij bewaakten elkaar").',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Hoe herken je een Nif\'al perfectum?',
+        options: ['Prefix הִ', 'Prefix נִ', 'Prefix הִתְ', 'Dagesh in de middelste letter'],
+        correctAnswer: 'Prefix נִ',
+        explanation: 'De Nif\'al perfectum is herkenbaar aan het prefix נִ. Voorbeeld: נִשְׁמַר (hij werd bewaakt).',
       },
     ],
   },
@@ -573,6 +950,29 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het kenmerk van de Pi\'el stam?',
+        options: ['Prefix נִ', 'Prefix הִתְ', 'Dagesh forte in de middelste wortelconsonant', 'Prefix הִ'],
+        correctAnswer: 'Dagesh forte in de middelste wortelconsonant',
+        explanation: 'Het kenmerk van de Pi\'el is de dagesh forte (verdubbeling) in de middelste wortelconsonant. Voorbeeld: דִּבֵּר (hij sprak).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het verschil tussen לָמַד (Qal) en לִמֵּד (Pi\'el)?',
+        options: ['Geen verschil', 'Qal = leren (zelf), Pi\'el = onderwijzen (iemand laten leren)', 'Qal = onderwijzen, Pi\'el = leren', 'Qal is verleden tijd, Pi\'el is toekomst'],
+        correctAnswer: 'Qal = leren (zelf), Pi\'el = onderwijzen (iemand laten leren)',
+        explanation: 'De Pi\'el heeft vaak een factitatieve betekenis: Qal לָמַד = leren (zelf), Pi\'el לִמֵּד = onderwijzen (iemand anders laten leren).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is de Pu\'al?',
+        options: ['De actieve tegenhanger van Pi\'el', 'De passieve tegenhanger van Pi\'el', 'De reflexieve vorm', 'De causatieve stam'],
+        correctAnswer: 'De passieve tegenhanger van Pi\'el',
+        explanation: 'De Pu\'al is de passieve tegenhanger van de Pi\'el. Het kenmerk is een u-klinker onder de eerste wortelconsonant. Voorbeeld: קֻדַּשׁ (hij werd geheiligd).',
+      },
+    ],
   },
   {
     id: "hifil-hofal",
@@ -629,6 +1029,22 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat drukt de Hif\'il stam uit?',
+        options: ['Passief', 'Reflexief', 'Causatief (doen/laten...)', 'Intensief'],
+        correctAnswer: 'Causatief (doen/laten...)',
+        explanation: 'De Hif\'il drukt een causatieve handeling uit: het subject veroorzaakt dat iemand anders de handeling uitvoert. Voorbeeld: הִשְׁמִיעַ = doen horen.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het verschil tussen שָׁמַע (Qal) en הִשְׁמִיעַ (Hif\'il)?',
+        options: ['Qal = horen, Hif\'il = doen horen / verkondigen', 'Qal = verkondigen, Hif\'il = horen', 'Er is geen verschil', 'Qal is actief, Hif\'il is passief'],
+        correctAnswer: 'Qal = horen, Hif\'il = doen horen / verkondigen',
+        explanation: 'De Hif\'il is causatief: Qal שָׁמַע = horen, Hif\'il הִשְׁמִיעַ = doen horen, verkondigen.',
+      },
+    ],
   },
   {
     id: "hitpael",
@@ -677,6 +1093,29 @@ export const grammarLessons: GrammarLesson[] = [
           { hebrew: "וַיִּתְפַּלֵּל אֶל־יְהוָה", transliteration: "wayyitpallel 'el-YHWH", dutch: "en hij bad tot de HEER", explanation: "Hitpa'el van פלל - 'bidden' (reflexief: 'voor zichzelf pleiten')." },
           { hebrew: "הִתְקַדְּשׁוּ", transliteration: "hitqaddeshu", dutch: "heiligt uzelf!", explanation: "Jozua 3:5 - imperatief Hitpa'el van קדשׁ." },
         ],
+      },
+    ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het kenmerkende prefix van de Hitpa\'el?',
+        options: ['נִ', 'הִ', 'הִתְ', 'מְ'],
+        correctAnswer: 'הִתְ',
+        explanation: 'Het kenmerk van de Hitpa\'el is het prefix הִתְ. Voorbeeld: הִתְקַדֵּשׁ (zich heiligen).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Welke betekenissen kan de Hitpa\'el uitdrukken?',
+        options: ['Alleen passief', 'Causatief en intensief', 'Reflexief, wederkerig, iteratief en simulatief', 'Alleen actief'],
+        correctAnswer: 'Reflexief, wederkerig, iteratief en simulatief',
+        explanation: 'De Hitpa\'el kan uitdrukken: reflexief (zich heiligen), wederkerig (met elkaar spreken), iteratief (rondwandelen), simulatief (zich voordoen als).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is "metathesis" bij de Hitpa\'el?',
+        options: ['De ה valt weg', 'De תְ en een sibilant wisselen van plaats', 'Het werkwoord wordt passief', 'Het prefix wordt verdubbeld'],
+        correctAnswer: 'De תְ en een sibilant wisselen van plaats',
+        explanation: 'Als de eerste wortelconsonant een sibilant is (שׂ, שׁ, ס, צ), wisselen de תְ en de sibilant van plaats. Voorbeeld: הִשְׁתַּמֵּר in plaats van הִתְשַׁמֵּר.',
       },
     ],
   },
@@ -737,6 +1176,22 @@ export const grammarLessons: GrammarLesson[] = [
           { hebrew: "הוֹשִׁיעָה נָּא", transliteration: "hoshi'ah nna'", dutch: "verlos toch!", explanation: "Hif'il imperatief van ישׁע (verlossen) - bron van 'Hosanna'." },
           { hebrew: "וַיּוֹלֶד", transliteration: "wayyoled", dutch: "en hij verwekte", explanation: "Hif'il wayyiqtol van ילד - frequent in geslachtsregisters." },
         ],
+      },
+    ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat gebeurt er met de נ bij Pe-Nun werkwoorden in het imperfectum?',
+        options: ['De נ wordt verdubbeld', 'De נ assimileert aan de volgende consonant', 'De נ krijgt een klinker', 'Er verandert niets'],
+        correctAnswer: 'De נ assimileert aan de volgende consonant',
+        explanation: 'Bij Pe-Nun werkwoorden assimileert de נ vaak aan de volgende consonant in het imperfectum. Voorbeeld: נָפַל → יִפֹּל (de נ verdwijnt, dagesh in פ).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het imperfectum van נָתַן (geven)?',
+        options: ['יִנְתֵּן', 'יִתֵּן', 'יַנְתֵּן', 'נוֹתֵן'],
+        correctAnswer: 'יִתֵּן',
+        explanation: 'Bij נָתַן assimileren beide נ letters in het imperfectum: יִנְתֵן → יִתֵּן (hij zal geven).',
       },
     ],
   },
@@ -800,6 +1255,29 @@ export const grammarLessons: GrammarLesson[] = [
           { hebrew: "עֲלֵה", transliteration: "'aleh", dutch: "ga op!", explanation: "Imperatief van עלה (opgaan)." },
           { hebrew: "צִוָּה יְהוָה", transliteration: "tsivvah YHWH", dutch: "de HEER gebood", explanation: "Pi'el perfectum van צוה - ook een Lamed-He werkwoord." },
         ],
+      },
+    ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat is kenmerkend voor Lamed-He werkwoorden?',
+        options: ['De eerste letter valt weg', 'De middelste letter verdubbelt', 'De derde radicaal ה valt weg of verandert in verschillende vormen', 'Ze hebben altijd een prefix'],
+        correctAnswer: 'De derde radicaal ה valt weg of verandert in verschillende vormen',
+        explanation: 'Bij Lamed-He werkwoorden verdwijnt de ה wanneer er een suffix met klinker volgt, en wordt vervangen door י voor consonant-suffixen.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is de 3e persoon meervoud perfectum van גָּלָה (onthullen)?',
+        options: ['גָּלוּ', 'גָּלָהוּ', 'גָּלְתָה', 'גָּלִים'],
+        correctAnswer: 'גָּלוּ',
+        explanation: 'De ה valt weg voor het suffix וּ (dat met een klinker begint): גָּלוּ = zij onthulden.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Waarop eindigt de infinitivus constructus van Lamed-He werkwoorden?',
+        options: ['ָה-', 'וֹת-', 'ִים-', 'ַת-'],
+        correctAnswer: 'וֹת-',
+        explanation: 'De infinitivus constructus van Lamed-He werkwoorden eindigt op וֹת-. Voorbeeld: גְּלוֹת (onthullen), רְאוֹת (zien).',
       },
     ],
   },
@@ -883,6 +1361,22 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Waarom worden werkwoorden als קוּם en בּוֹא "holle werkwoorden" genoemd?',
+        options: ['Ze hebben geen betekenis', 'De middelste consonant verdwijnt, waardoor ze tweeletter-werkwoorden lijken', 'Ze worden alleen in poezie gebruikt', 'Ze hebben geen perfectum-vorm'],
+        correctAnswer: 'De middelste consonant verdwijnt, waardoor ze tweeletter-werkwoorden lijken',
+        explanation: 'Bij holle werkwoorden (Ayin-Waw/Yod) verdwijnt de middelste consonant (ו of י) en blijft er een lange klinker over, waardoor het werkwoord "hol" lijkt.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het imperfectum van קוּם (opstaan), 3e m. enk.?',
+        options: ['קָם', 'יָקוּם', 'קוֹמֵם', 'יִקְוֹם'],
+        correctAnswer: 'יָקוּם',
+        explanation: 'Het imperfectum van קוּם is יָקוּם (hij zal opstaan). De lange klinker (shureq) verschijnt na het prefix.',
+      },
+    ],
   },
   {
     id: "bijzinnen-syntaxis",
@@ -936,6 +1430,29 @@ export const grammarLessons: GrammarLesson[] = [
         ],
       },
     ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat is de standaard woordvolgorde in Bijbels Hebreeuws proza?',
+        options: ['Subject-Werkwoord-Object (SVO)', 'Werkwoord-Subject-Object (VSO)', 'Object-Subject-Werkwoord (OSV)', 'Subject-Object-Werkwoord (SOV)'],
+        correctAnswer: 'Werkwoord-Subject-Object (VSO)',
+        explanation: 'De standaard woordvolgorde in Bijbels Hebreeuws proza is VSO (Werkwoord-Subject-Object). Dit verschilt van het Nederlands (SVO).',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Waarvoor dient het partikel אֵת?',
+        options: ['Het is een voorzetsel dat "met" betekent', 'Het markeert een bepaald direct object', 'Het is een voegwoord', 'Het is het onbepaald lidwoord'],
+        correctAnswer: 'Het markeert een bepaald direct object',
+        explanation: 'אֵת markeert een bepaald direct object. Het heeft geen vertaling in het Nederlands maar is essentieel in het Hebreeuws.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Waarmee worden relatieve bijzinnen ingeleid?',
+        options: ['כִּי', 'אֲשֶׁר', 'אִם', 'גַּם'],
+        correctAnswer: 'אֲשֶׁר',
+        explanation: 'Relatieve bijzinnen worden ingeleid door אֲשֶׁר ("die, dat, welke, waar"). Het is onverbuigbaar.',
+      },
+    ],
   },
   {
     id: "poetisch-hebreeuws",
@@ -986,6 +1503,22 @@ export const grammarLessons: GrammarLesson[] = [
           { hebrew: "כְּאַיָּל תַּעֲרֹג עַל־אֲפִיקֵי מָיִם", transliteration: "ke'ayyal ta'arog 'al-'afiqe mayim", dutch: "als een hert dat schreeuwt naar de waterbeken", explanation: "Psalm 42:2 - simile met כְּ ('als')." },
           { hebrew: "הַלְלוּ יָהּ", transliteration: "hallelu Yah", dutch: "prijs de HEER!", explanation: "Bron van 'Halleluja' - imperatief meervoud van הלל + verkorte godsnaam." },
         ],
+      },
+    ],
+    exercises: [
+      {
+        type: 'multiple-choice',
+        question: 'Wat is het belangrijkste kenmerk van Hebreeuwse poezie?',
+        options: ['Rijm', 'Parallelisme', 'Metrum', 'Refrein'],
+        correctAnswer: 'Parallelisme',
+        explanation: 'Het belangrijkste kenmerk van Hebreeuwse poezie is parallelisme: een vers bestaat uit twee of drie regels die inhoudelijk op elkaar betrokken zijn.',
+      },
+      {
+        type: 'multiple-choice',
+        question: 'Wat is synoniem parallelisme?',
+        options: ['De tweede regel staat in contrast met de eerste', 'De tweede regel herhaalt de eerste met andere woorden', 'De tweede regel bouwt voort op de eerste', 'De regels vormen een kruisstelling'],
+        correctAnswer: 'De tweede regel herhaalt de eerste met andere woorden',
+        explanation: 'Bij synoniem parallelisme herhaalt de tweede regel de eerste met andere woorden. Voorbeeld: "De hemelen vertellen Gods eer / en het firmament verkondigt het werk van Zijn handen" (Psalm 19:2).',
       },
     ],
   },

@@ -1,6 +1,7 @@
 import { grammarLessons } from "@/data/grammar";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import GrammarExercises from "@/components/GrammarExercise";
 
 export function generateStaticParams() {
   return grammarLessons.map((lesson) => ({ lesson: lesson.id }));
@@ -101,6 +102,13 @@ export default async function GrammarLessonPage({
           </div>
         ))}
       </div>
+
+      {lesson.exercises && lesson.exercises.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold text-green-lightest mb-4">Oefeningen</h2>
+          <GrammarExercises exercises={lesson.exercises} lessonId={lesson.id} />
+        </div>
+      )}
 
       <div className="flex justify-between mt-8">
         {prevLesson ? (

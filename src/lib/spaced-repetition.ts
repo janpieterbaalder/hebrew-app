@@ -85,6 +85,7 @@ export interface ProgressData {
     lastStudyDate: string;
     wordsLearned: number;
     lettersLearned: number;
+    grammarCompleted?: string[];
   };
 }
 
