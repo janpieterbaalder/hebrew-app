@@ -10,7 +10,12 @@ const NUM_STACKS = Math.ceil(vocabulary.length / STACK_SIZE);
 export default function WoordenscatPage() {
   const { progress, ready } = useProgress();
 
+  const completedStackNumbers = ready
+    ? (progress.stats.completedStacks ?? [])
+    : [];
+
   const stacks = Array.from({ length: NUM_STACKS }, (_, i) => {
+    const stapelNumber = i + 1;
     const words = vocabulary.slice(i * STACK_SIZE, (i + 1) * STACK_SIZE);
     const learned = ready
       ? words.filter((w) => {
@@ -18,12 +23,12 @@ export default function WoordenscatPage() {
           return card && card.repetitions >= 2;
         }).length
       : 0;
-    const complete = learned === words.length;
+    const complete = completedStackNumbers.includes(stapelNumber);
     return { index: i, words, learned, complete };
   });
 
   const totalLearned = stacks.reduce((sum, s) => sum + s.learned, 0);
-  const completedStacks = stacks.filter((s) => s.complete).length;
+  const completedStacks = completedStackNumbers.length;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">

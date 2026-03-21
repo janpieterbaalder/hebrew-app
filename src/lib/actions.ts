@@ -97,8 +97,8 @@ export async function syncProgressAction(
   // Sync stats
   const s = progress.stats;
   await sql`
-    INSERT INTO user_stats (user_id, total_reviewed, streak, last_study_date, words_learned, letters_learned, grammar_completed)
-    VALUES (${userId}, ${s.totalReviewed}, ${s.streak}, ${s.lastStudyDate || null}, ${s.wordsLearned}, ${s.lettersLearned}, ${JSON.stringify(s.grammarCompleted ?? [])})
+    INSERT INTO user_stats (user_id, total_reviewed, streak, last_study_date, words_learned, letters_learned, grammar_completed, completed_stacks)
+    VALUES (${userId}, ${s.totalReviewed}, ${s.streak}, ${s.lastStudyDate || null}, ${s.wordsLearned}, ${s.lettersLearned}, ${JSON.stringify(s.grammarCompleted ?? [])}, ${JSON.stringify(s.completedStacks ?? [])})
     ON CONFLICT (user_id)
     DO UPDATE SET
       total_reviewed = ${s.totalReviewed},
@@ -106,7 +106,8 @@ export async function syncProgressAction(
       last_study_date = ${s.lastStudyDate || null},
       words_learned = ${s.wordsLearned},
       letters_learned = ${s.lettersLearned},
-      grammar_completed = ${JSON.stringify(s.grammarCompleted ?? [])}
+      grammar_completed = ${JSON.stringify(s.grammarCompleted ?? [])},
+      completed_stacks = ${JSON.stringify(s.completedStacks ?? [])}
   `;
 }
 
@@ -148,7 +149,7 @@ export async function loadProgressAction(): Promise<ProgressData> {
 
   // Load stats
   const statsRows = await sql`
-    SELECT total_reviewed, streak, last_study_date, words_learned, letters_learned, grammar_completed
+    SELECT total_reviewed, streak, last_study_date, words_learned, letters_learned, grammar_completed, completed_stacks
     FROM user_stats WHERE user_id = ${userId}
   `;
 
@@ -161,6 +162,7 @@ export async function loadProgressAction(): Promise<ProgressData> {
         wordsLearned: statsRow.words_learned ?? 0,
         lettersLearned: statsRow.letters_learned ?? 0,
         grammarCompleted: statsRow.grammar_completed ?? [],
+        completedStacks: statsRow.completed_stacks ?? [],
       }
     : {
         totalReviewed: 0,
@@ -169,6 +171,7 @@ export async function loadProgressAction(): Promise<ProgressData> {
         wordsLearned: 0,
         lettersLearned: 0,
         grammarCompleted: [] as string[],
+        completedStacks: [] as number[],
       };
 
   return { cards, stats };

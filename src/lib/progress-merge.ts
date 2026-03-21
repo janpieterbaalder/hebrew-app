@@ -46,6 +46,10 @@ export function mergeProgress(
       local.stats.grammarCompleted ?? [],
       remote.stats.grammarCompleted ?? []
     ),
+    completedStacks: mergeNumberArrays(
+      local.stats.completedStacks ?? [],
+      remote.stats.completedStacks ?? []
+    ),
   };
 
   return { cards: mergedCards, stats: mergedStats };
@@ -53,4 +57,8 @@ export function mergeProgress(
 
 function mergeStringArrays(a: string[], b: string[]): string[] {
   return [...new Set([...a, ...b])];
+}
+
+function mergeNumberArrays(a: number[], b: number[]): number[] {
+  return [...new Set([...a, ...b])].sort((x, y) => x - y);
 }

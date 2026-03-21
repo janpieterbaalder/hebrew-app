@@ -72,12 +72,25 @@ function FlashcardPracticeInner() {
           (k) => k.startsWith("vocab-") && cards[k].repetitions >= 2
         ).length;
 
+        // Check if this stack is now fully complete
+        const stackWords = vocabulary.slice(wordStart, wordEnd);
+        const stackNowComplete = stackWords.every((w) => {
+          const card = cards[`vocab-${w.id}`];
+          return card && card.repetitions >= 2;
+        });
+        const prevCompleted = prev.stats.completedStacks ?? [];
+        const completedStacks =
+          stackNowComplete && !prevCompleted.includes(stapelNumber)
+            ? [...prevCompleted, stapelNumber]
+            : prevCompleted;
+
         return updateStreak({
           cards,
           stats: {
             ...prev.stats,
             totalReviewed: prev.stats.totalReviewed + 1,
             wordsLearned: learnedCount,
+            completedStacks,
           },
         });
       });
