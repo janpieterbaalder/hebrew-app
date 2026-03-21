@@ -8,17 +8,22 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
 import { getProgress, saveProgress } from "@/lib/spaced-repetition";
 import {
-  syncProgressToSupabase,
-  loadProgressFromSupabase,
-  mergeProgress,
-} from "@/lib/supabase-sync";
+  getSessionAction,
+  logoutAction,
+  syncProgressAction,
+  loadProgressAction,
+} from "@/lib/actions";
+import { mergeProgress } from "@/lib/progress-merge";
+
+interface UserInfo {
+  userId: string;
+  email: string;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: UserInfo | null;
   loading: boolean;
   signOut: () => Promise<void>;
   syncNow: () => Promise<void>;
@@ -32,65 +37,46 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const syncWithSupabase = useCallback(async (userId: string) => {
+  const syncWithServer = useCallback(async () => {
     try {
       const local = getProgress();
-      const remote = await loadProgressFromSupabase(userId);
+      const remote = await loadProgressAction();
       const merged = mergeProgress(local, remote);
 
       // Save merged data locally
       saveProgress(merged);
 
-      // Push merged data to Supabase
-      await syncProgressToSupabase(userId, merged);
+      // Push merged data to server
+      await syncProgressAction(merged);
     } catch (err) {
       console.error("Sync failed:", err);
     }
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
-
-    // Get initial session
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    getSessionAction().then((session) => {
+      setUser(session);
       setLoading(false);
-      if (user) {
-        syncWithSupabase(user.id);
+      if (session) {
+        syncWithServer();
       }
     });
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      const newUser = session?.user ?? null;
-      setUser(newUser);
-      setLoading(false);
-      if (newUser) {
-        syncWithSupabase(newUser.id);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [syncWithSupabase]);
+  }, [syncWithServer]);
 
   const signOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await logoutAction();
     setUser(null);
+    window.location.href = "/";
   };
 
   const syncNow = useCallback(async () => {
     if (user) {
-      await syncWithSupabase(user.id);
+      await syncWithServer();
     }
-  }, [user, syncWithSupabase]);
+  }, [user, syncWithServer]);
 
   return (
     <AuthContext.Provider value={{ user, loading, signOut, syncNow }}>

@@ -106,18 +106,11 @@ export function saveProgress(data: ProgressData): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
-  // Auto-sync to Supabase if user is logged in
-  import("@/lib/supabase/client").then(({ createClient }) => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        import("@/lib/supabase-sync").then(({ syncProgressToSupabase }) => {
-          syncProgressToSupabase(user.id, data).catch((err) =>
-            console.error("Auto-sync failed:", err)
-          );
-        });
-      }
-    });
+  // Auto-sync to server if user is logged in
+  import("@/lib/actions").then(({ syncProgressAction }) => {
+    syncProgressAction(data).catch((err) =>
+      console.error("Auto-sync failed:", err)
+    );
   });
 }
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { loginAction, registerAction } from "@/lib/actions";
 
 export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
@@ -10,52 +10,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
     setLoading(true);
 
-    const supabase = createClient();
-
     try {
-      if (isRegister) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-          },
-        });
-        if (error) {
-          if (error.message.includes("already registered")) {
-            setError("Dit e-mailadres is al geregistreerd.");
-          } else if (error.message.includes("Password")) {
-            setError("Wachtwoord moet minimaal 6 tekens bevatten.");
-          } else {
-            setError("Registratie mislukt. Probeer het opnieuw.");
-          }
-          return;
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) {
-          if (error.message.includes("Invalid login")) {
-            setError("Ongeldig e-mailadres of wachtwoord.");
-          } else {
-            setError("Inloggen mislukt. Probeer het opnieuw.");
-          }
-          return;
-        }
+      const result = isRegister
+        ? await registerAction(email, password)
+        : await loginAction(email, password);
+
+      if (!result.success) {
+        setError(result.error ?? "Er is een fout opgetreden.");
+        return;
       }
 
-      router.push("/");
+      window.location.href = "/";
     } catch {
       setError("Er is een fout opgetreden. Probeer het opnieuw.");
     } finally {
@@ -116,12 +88,6 @@ export default function LoginPage() {
                 className="w-full px-4 py-2.5 bg-surface border border-green-darkest/50 rounded-lg text-green-lightest placeholder:text-green-light/30 focus:outline-none focus:border-green-dark focus:ring-1 focus:ring-green-dark transition-colors"
               />
             </div>
-
-            {success && (
-              <div className="bg-green-900/30 border border-green/30 rounded-lg px-4 py-3 text-green-light text-sm">
-                {success}
-              </div>
-            )}
 
             {error && (
               <div className="bg-red-900/30 border border-red-500/30 rounded-lg px-4 py-3 text-red-300 text-sm">
