@@ -55,10 +55,6 @@ export default function LoginPage() {
         }
       }
 
-      if (isRegister) {
-        setSuccess("Check je e-mail voor een bevestigingslink!");
-        return;
-      }
       router.push("/");
     } catch {
       setError("Er is een fout opgetreden. Probeer het opnieuw.");
