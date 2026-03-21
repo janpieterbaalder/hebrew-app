@@ -4,14 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { vocabulary } from "@/data/vocabulary";
 import {
-  getProgress,
-  saveProgress,
   createNewCard,
   calculateNextReview,
   isDueForReview,
   updateStreak,
   type Quality,
 } from "@/lib/spaced-repetition";
+import { useProgress } from "@/components/ProgressContext";
 
 type FlashcardMode = "hebrew-to-dutch" | "dutch-to-hebrew";
 
@@ -25,6 +24,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function FlashcardPractice() {
+  const { progress, ready, updateProgress } = useProgress();
   const [mode, setMode] = useState<FlashcardMode>("hebrew-to-dutch");
   const [showAnswer, setShowAnswer] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -43,8 +43,10 @@ export default function FlashcardPractice() {
     setWordRange([start, end]);
   }, []);
 
+  // Wait for context to be ready before determining which words are due
   useEffect(() => {
-    const progress = getProgress();
+    if (!ready) return;
+
     const dueWords = vocabulary.filter((w) => {
       const cardId = `vocab-${w.id}`;
       return progress.cards[cardId] && isDueForReview(progress.cards[cardId]);
@@ -55,27 +57,33 @@ export default function FlashcardPractice() {
     } else {
       loadWords(0, 20);
     }
-  }, [loadWords]);
+  }, [ready, progress, loadWords]);
 
   const handleScore = (quality: Quality) => {
     const currentWord = words[currentIndex];
-    const progress = getProgress();
-    const cardId = `vocab-${currentWord.id}`;
 
-    if (!progress.cards[cardId]) {
-      progress.cards[cardId] = createNewCard(cardId);
-    }
+    updateProgress((prev) => {
+      const cards = { ...prev.cards };
+      const cardId = `vocab-${currentWord.id}`;
 
-    progress.cards[cardId] = calculateNextReview(progress.cards[cardId], quality);
-    progress.stats.totalReviewed += 1;
+      if (!cards[cardId]) {
+        cards[cardId] = createNewCard(cardId);
+      }
+      cards[cardId] = calculateNextReview(cards[cardId], quality);
 
-    const learnedCount = Object.keys(progress.cards).filter(
-      (k) => k.startsWith("vocab-") && progress.cards[k].repetitions >= 2
-    ).length;
-    progress.stats.wordsLearned = learnedCount;
+      const learnedCount = Object.keys(cards).filter(
+        (k) => k.startsWith("vocab-") && cards[k].repetitions >= 2
+      ).length;
 
-    const updated = updateStreak(progress);
-    saveProgress(updated);
+      return updateStreak({
+        cards,
+        stats: {
+          ...prev.stats,
+          totalReviewed: prev.stats.totalReviewed + 1,
+          wordsLearned: learnedCount,
+        },
+      });
+    });
 
     setSessionScore((prev) => ({
       correct: prev.correct + (quality >= 3 ? 1 : 0),
@@ -89,6 +97,15 @@ export default function FlashcardPractice() {
       setShowAnswer(false);
     }
   };
+
+  // Loader: wait until server data is merged into context
+  if (!ready) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-green border-t-transparent" />
+      </div>
+    );
+  }
 
   if (sessionComplete) {
     const percentage =

@@ -105,13 +105,6 @@ export function getProgress(): ProgressData {
 export function saveProgress(data: ProgressData): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
-  // Auto-sync to server if user is logged in
-  import("@/lib/actions").then(({ syncProgressAction }) => {
-    syncProgressAction(data).catch((err) =>
-      console.error("Auto-sync failed:", err)
-    );
-  });
 }
 
 function getDefaultProgress(): ProgressData {

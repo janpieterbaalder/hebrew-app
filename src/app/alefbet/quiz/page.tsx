@@ -4,13 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { alphabet } from "@/data/alphabet";
 import {
-  getProgress,
-  saveProgress,
   createNewCard,
   calculateNextReview,
   updateStreak,
   type Quality,
 } from "@/lib/spaced-repetition";
+import { useProgress } from "@/components/ProgressContext";
 
 type QuizMode = "name" | "sound";
 
@@ -24,6 +23,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function AlefbetQuiz() {
+  const { progress, ready, updateProgress } = useProgress();
   const [mode, setMode] = useState<QuizMode>("name");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
@@ -79,24 +79,30 @@ export default function AlefbetQuiz() {
       total: prev.total + 1,
     }));
 
-    const progress = getProgress();
-    const cardId = `letter-${current.id}`;
-    if (!progress.cards[cardId]) {
-      progress.cards[cardId] = createNewCard(cardId);
-    }
-    const quality: Quality = correct ? 5 : 1;
-    progress.cards[cardId] = calculateNextReview(progress.cards[cardId], quality);
-    progress.stats.totalReviewed += 1;
+    updateProgress((prev) => {
+      const cards = { ...prev.cards };
+      const cardId = `letter-${current.id}`;
+      if (!cards[cardId]) {
+        cards[cardId] = createNewCard(cardId);
+      }
+      const quality: Quality = correct ? 5 : 1;
+      cards[cardId] = calculateNextReview(cards[cardId], quality);
 
-    if (correct) {
-      const learnedCount = Object.keys(progress.cards).filter(
-        (k) => k.startsWith("letter-") && progress.cards[k].repetitions >= 2
+      const learnedCount = Object.keys(cards).filter(
+        (k) => k.startsWith("letter-") && cards[k].repetitions >= 2
       ).length;
-      progress.stats.lettersLearned = learnedCount;
-    }
 
-    const updated = updateStreak(progress);
-    saveProgress(updated);
+      const updated = updateStreak({
+        cards,
+        stats: {
+          ...prev.stats,
+          totalReviewed: prev.stats.totalReviewed + 1,
+          lettersLearned: correct ? learnedCount : prev.stats.lettersLearned,
+        },
+      });
+
+      return updated;
+    });
   };
 
   const nextQuestion = () => {
@@ -108,6 +114,15 @@ export default function AlefbetQuiz() {
       setIsCorrect(null);
     }
   };
+
+  // Loader: wait until server data is merged into context
+  if (!ready) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-green border-t-transparent" />
+      </div>
+    );
+  }
 
   if (quizComplete) {
     const percentage = Math.round((score.correct / score.total) * 100);

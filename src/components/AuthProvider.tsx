@@ -5,17 +5,9 @@ import {
   useContext,
   useEffect,
   useState,
-  useCallback,
   type ReactNode,
 } from "react";
-import { getProgress, saveProgress } from "@/lib/spaced-repetition";
-import {
-  getSessionAction,
-  logoutAction,
-  syncProgressAction,
-  loadProgressAction,
-} from "@/lib/actions";
-import { mergeProgress } from "@/lib/progress-merge";
+import { getSessionAction, logoutAction } from "@/lib/actions";
 
 interface UserInfo {
   userId: string;
@@ -26,45 +18,24 @@ interface AuthContextType {
   user: UserInfo | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  syncNow: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signOut: async () => {},
-  syncNow: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const syncWithServer = useCallback(async () => {
-    try {
-      const local = getProgress();
-      const remote = await loadProgressAction();
-      const merged = mergeProgress(local, remote);
-
-      // Save merged data locally
-      saveProgress(merged);
-
-      // Push merged data to server
-      await syncProgressAction(merged);
-    } catch (err) {
-      console.error("Sync failed:", err);
-    }
-  }, []);
-
   useEffect(() => {
     getSessionAction().then((session) => {
       setUser(session);
       setLoading(false);
-      if (session) {
-        syncWithServer();
-      }
     });
-  }, [syncWithServer]);
+  }, []);
 
   const signOut = async () => {
     await logoutAction();
@@ -72,14 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = "/";
   };
 
-  const syncNow = useCallback(async () => {
-    if (user) {
-      await syncWithServer();
-    }
-  }, [user, syncWithServer]);
-
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, syncNow }}>
+    <AuthContext.Provider value={{ user, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

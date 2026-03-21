@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getProgress, type ProgressData } from "@/lib/spaced-repetition";
+import { useProgress } from "@/components/ProgressContext";
 
 const modules = [
   {
@@ -44,11 +43,7 @@ const modules = [
 ];
 
 export default function Dashboard() {
-  const [progress, setProgress] = useState<ProgressData | null>(null);
-
-  useEffect(() => {
-    setProgress(getProgress());
-  }, []);
+  const { progress, ready } = useProgress();
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -65,7 +60,7 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {progress && (
+      {ready && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           <StatCard label="Dagen streak" value={progress.stats.streak} icon="🔥" />
           <StatCard label="Letters geleerd" value={progress.stats.lettersLearned} icon="א" />
@@ -94,7 +89,7 @@ export default function Dashboard() {
                 <p className="text-sm text-green-light/50 mt-1">
                   {mod.description}
                 </p>
-                {progress && mod.progressKey && mod.total && (
+                {ready && mod.progressKey && mod.total && (
                   <div className="mt-3">
                     <div className="flex justify-between text-xs text-green-light/40 mb-1">
                       <span>Voortgang</span>

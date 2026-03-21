@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { GrammarExercise } from '@/data/grammar';
+import { useProgress } from '@/components/ProgressContext';
 
 interface GrammarExerciseProps {
   exercises: GrammarExercise[];
@@ -9,6 +10,7 @@ interface GrammarExerciseProps {
 }
 
 export default function GrammarExercises({ exercises, lessonId }: GrammarExerciseProps) {
+  const { updateProgress } = useProgress();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [score, setScore] = useState(0);
@@ -31,6 +33,18 @@ export default function GrammarExercises({ exercises, lessonId }: GrammarExercis
       setCurrentIndex((i) => i + 1);
       setSelectedAnswer(null);
     } else {
+      // Mark this lesson as completed in progress
+      updateProgress((prev) => {
+        const already = prev.stats.grammarCompleted ?? [];
+        if (already.includes(lessonId)) return prev;
+        return {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            grammarCompleted: [...already, lessonId],
+          },
+        };
+      });
       setFinished(true);
     }
   }

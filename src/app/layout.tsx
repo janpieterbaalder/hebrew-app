@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ProgressProvider } from "@/components/ProgressContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,8 +24,10 @@ export default function RootLayout({
     <html lang="nl" className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <Navigation />
-          <main className="flex-1">{children}</main>
+          <ProgressProvider>
+            <Navigation />
+            <main className="flex-1">{children}</main>
+          </ProgressProvider>
         </AuthProvider>
       </body>
     </html>
