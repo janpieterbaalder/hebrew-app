@@ -131,7 +131,12 @@ export default function GrammarExercises({ exercises, lessonId }: GrammarExercis
               >
                 <span
                   className={`${
-                    option.match(/[\u0590-\u05FF]/) ? 'hebrew text-lg text-green' : 'text-green-lightest'
+                    // Only apply RTL Hebrew styling if the option is purely Hebrew
+                    // (no Latin letters). Mixed options like "Omdat אִישׁ ..." should
+                    // render LTR so the Dutch text is not reversed.
+                    option.match(/[\u0590-\u05FF]/) && !option.match(/[A-Za-z]/)
+                      ? 'hebrew text-lg text-green'
+                      : 'text-green-lightest'
                   }`}
                 >
                   {option}

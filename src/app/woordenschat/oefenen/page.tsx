@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { vocabulary } from "@/data/vocabulary";
 import {
   createNewCard,
   calculateNextReview,
-  isDueForReview,
   updateStreak,
   type Quality,
 } from "@/lib/spaced-repetition";
 import { useProgress } from "@/components/ProgressContext";
 
-type FlashcardMode = "hebrew-to-dutch" | "dutch-to-hebrew";
+const STACK_SIZE = 20;
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -23,82 +23,80 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-export default function FlashcardPractice() {
-  const { progress, ready, updateProgress } = useProgress();
+type FlashcardMode = "hebrew-to-dutch" | "dutch-to-hebrew";
+
+function FlashcardPracticeInner() {
+  const { ready, updateProgress } = useProgress();
+  const searchParams = useSearchParams();
+
+  // Determine which stack to practice (1-based, default 1)
+  const stapelParam = searchParams.get("stapel");
+  const stapelNumber = stapelParam
+    ? Math.max(1, Math.min(25, parseInt(stapelParam, 10)))
+    : 1;
+  const wordStart = (stapelNumber - 1) * STACK_SIZE;
+  const wordEnd = Math.min(wordStart + STACK_SIZE, vocabulary.length);
+  const totalStacks = Math.ceil(vocabulary.length / STACK_SIZE);
+
   const [mode, setMode] = useState<FlashcardMode>("hebrew-to-dutch");
   const [showAnswer, setShowAnswer] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [words, setWords] = useState(vocabulary.slice(0, 20));
+  // Initialise with the correct stack immediately — NOT based on progress,
+  // so this never re-fires when progress changes (Bug 2 fix).
+  const [words, setWords] = useState(() =>
+    shuffleArray(vocabulary.slice(wordStart, wordEnd))
+  );
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
-  const [wordRange, setWordRange] = useState<[number, number]>([0, 20]);
 
-  const loadWords = useCallback((start: number, end: number) => {
-    const selected = vocabulary.slice(start, end);
-    setWords(shuffleArray(selected));
+  // When the stapel URL param changes, reset the session for the new stack.
+  useEffect(() => {
+    setWords(shuffleArray(vocabulary.slice(wordStart, wordEnd)));
     setCurrentIndex(0);
     setShowAnswer(false);
     setSessionScore({ correct: 0, total: 0 });
     setSessionComplete(false);
-    setWordRange([start, end]);
-  }, []);
+  }, [wordStart, wordEnd]);
 
-  // Wait for context to be ready before determining which words are due
-  useEffect(() => {
-    if (!ready) return;
+  const handleScore = useCallback(
+    (quality: Quality) => {
+      const currentWord = words[currentIndex];
 
-    const dueWords = vocabulary.filter((w) => {
-      const cardId = `vocab-${w.id}`;
-      return progress.cards[cardId] && isDueForReview(progress.cards[cardId]);
-    });
+      updateProgress((prev) => {
+        const cards = { ...prev.cards };
+        const cardId = `vocab-${currentWord.id}`;
+        if (!cards[cardId]) cards[cardId] = createNewCard(cardId);
+        cards[cardId] = calculateNextReview(cards[cardId], quality);
 
-    if (dueWords.length >= 5) {
-      setWords(shuffleArray(dueWords).slice(0, 20));
-    } else {
-      loadWords(0, 20);
-    }
-  }, [ready, progress, loadWords]);
+        const learnedCount = Object.keys(cards).filter(
+          (k) => k.startsWith("vocab-") && cards[k].repetitions >= 2
+        ).length;
 
-  const handleScore = (quality: Quality) => {
-    const currentWord = words[currentIndex];
-
-    updateProgress((prev) => {
-      const cards = { ...prev.cards };
-      const cardId = `vocab-${currentWord.id}`;
-
-      if (!cards[cardId]) {
-        cards[cardId] = createNewCard(cardId);
-      }
-      cards[cardId] = calculateNextReview(cards[cardId], quality);
-
-      const learnedCount = Object.keys(cards).filter(
-        (k) => k.startsWith("vocab-") && cards[k].repetitions >= 2
-      ).length;
-
-      return updateStreak({
-        cards,
-        stats: {
-          ...prev.stats,
-          totalReviewed: prev.stats.totalReviewed + 1,
-          wordsLearned: learnedCount,
-        },
+        return updateStreak({
+          cards,
+          stats: {
+            ...prev.stats,
+            totalReviewed: prev.stats.totalReviewed + 1,
+            wordsLearned: learnedCount,
+          },
+        });
       });
-    });
 
-    setSessionScore((prev) => ({
-      correct: prev.correct + (quality >= 3 ? 1 : 0),
-      total: prev.total + 1,
-    }));
+      setSessionScore((prev) => ({
+        correct: prev.correct + (quality >= 3 ? 1 : 0),
+        total: prev.total + 1,
+      }));
 
-    if (currentIndex + 1 >= words.length) {
-      setSessionComplete(true);
-    } else {
-      setCurrentIndex((prev) => prev + 1);
-      setShowAnswer(false);
-    }
-  };
+      if (currentIndex + 1 >= words.length) {
+        setSessionComplete(true);
+      } else {
+        setCurrentIndex((prev) => prev + 1);
+        setShowAnswer(false);
+      }
+    },
+    [words, currentIndex, updateProgress]
+  );
 
-  // Loader: wait until server data is merged into context
   if (!ready) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -112,33 +110,34 @@ export default function FlashcardPractice() {
       sessionScore.total > 0
         ? Math.round((sessionScore.correct / sessionScore.total) * 100)
         : 0;
+    const nextStapel = stapelNumber < totalStacks ? stapelNumber + 1 : null;
+
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
         <div className="text-6xl mb-4">
           {percentage >= 80 ? "🎉" : percentage >= 50 ? "👍" : "💪"}
         </div>
-        <h1 className="text-3xl font-bold text-green-lightest mb-2">Sessie voltooid!</h1>
+        <h1 className="text-3xl font-bold text-green-lightest mb-2">
+          Stapel {stapelNumber} voltooid!
+        </h1>
         <p className="text-xl text-green-light/60 mb-6">
           {sessionScore.correct} van {sessionScore.total} correct ({percentage}%)
         </p>
         <div className="flex gap-3 justify-center flex-wrap">
-          <button
-            onClick={() => loadWords(wordRange[0], wordRange[1])}
+          <Link
+            href={`/woordenschat/oefenen?stapel=${stapelNumber}`}
             className="gradient-green text-white px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-md"
           >
             Opnieuw oefenen
-          </button>
-          <button
-            onClick={() =>
-              loadWords(
-                Math.min(wordRange[1], vocabulary.length - 1),
-                Math.min(wordRange[1] + 20, vocabulary.length)
-              )
-            }
-            className="bg-surface-light text-green-light border border-green-darkest/50 px-6 py-2.5 rounded-lg font-medium hover:bg-surface-lighter transition-colors"
-          >
-            Volgende 20 woorden
-          </button>
+          </Link>
+          {nextStapel && (
+            <Link
+              href={`/woordenschat/oefenen?stapel=${nextStapel}`}
+              className="bg-surface-light text-green-light border border-green-darkest/50 px-6 py-2.5 rounded-lg font-medium hover:bg-surface-lighter transition-colors"
+            >
+              Naar stapel {nextStapel} →
+            </Link>
+          )}
           <Link
             href="/woordenschat"
             className="bg-surface-light text-green-light border border-green-darkest/50 px-6 py-2.5 rounded-lg font-medium hover:bg-surface-lighter transition-colors"
@@ -156,9 +155,15 @@ export default function FlashcardPractice() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <Link href="/woordenschat" className="text-green-light/50 hover:text-green-light text-sm">
+        <Link
+          href="/woordenschat"
+          className="text-green-light/50 hover:text-green-light text-sm"
+        >
           ← Terug
         </Link>
+        <span className="text-sm text-green-light/50 font-medium">
+          Stapel {stapelNumber} · woorden {wordStart + 1}–{wordEnd}
+        </span>
         <div className="flex gap-2">
           <button
             onClick={() => { setMode("hebrew-to-dutch"); setShowAnswer(false); }}
@@ -168,7 +173,7 @@ export default function FlashcardPractice() {
                 : "bg-surface-light text-green-light/60 border border-green-darkest/50"
             }`}
           >
-            Hebreeuws → Nederlands
+            עב→NL
           </button>
           <button
             onClick={() => { setMode("dutch-to-hebrew"); setShowAnswer(false); }}
@@ -178,7 +183,7 @@ export default function FlashcardPractice() {
                 : "bg-surface-light text-green-light/60 border border-green-darkest/50"
             }`}
           >
-            Nederlands → Hebreeuws
+            NL→עב
           </button>
         </div>
       </div>
@@ -186,7 +191,7 @@ export default function FlashcardPractice() {
       <div className="mb-4">
         <div className="flex justify-between text-sm text-green-light/40 mb-1">
           <span>Woord {currentIndex + 1} van {words.length}</span>
-          <span>Woorden {wordRange[0] + 1}-{wordRange[1]}</span>
+          <span>Score: {sessionScore.correct}/{sessionScore.total}</span>
         </div>
         <div className="w-full bg-surface rounded-full h-2">
           <div
@@ -203,31 +208,43 @@ export default function FlashcardPractice() {
         {mode === "hebrew-to-dutch" ? (
           <>
             <div className="hebrew-large text-green mb-4">{currentWord.hebrew}</div>
-            <div className="text-sm text-green-light/40 mb-2">({currentWord.transliteration})</div>
+            <div className="text-sm text-green-light/40 mb-2">
+              ({currentWord.transliteration})
+            </div>
             {showAnswer ? (
               <div className="mt-4 space-y-2">
-                <div className="text-2xl font-semibold text-green-lightest">{currentWord.dutch}</div>
+                <div className="text-2xl font-semibold text-green-lightest">
+                  {currentWord.dutch}
+                </div>
                 {currentWord.notes && (
                   <div className="text-sm text-green-light/40">{currentWord.notes}</div>
                 )}
               </div>
             ) : (
-              <div className="text-green-light/30 text-sm mt-4">Klik om het antwoord te zien</div>
+              <div className="text-green-light/30 text-sm mt-4">
+                Klik om het antwoord te zien
+              </div>
             )}
           </>
         ) : (
           <>
-            <div className="text-2xl font-semibold text-green-lightest mb-2">{currentWord.dutch}</div>
+            <div className="text-2xl font-semibold text-green-lightest mb-2">
+              {currentWord.dutch}
+            </div>
             {showAnswer ? (
               <div className="mt-4 space-y-2">
                 <div className="hebrew-large text-green">{currentWord.hebrew}</div>
-                <div className="text-sm text-green-light/40">({currentWord.transliteration})</div>
+                <div className="text-sm text-green-light/40">
+                  ({currentWord.transliteration})
+                </div>
                 {currentWord.notes && (
                   <div className="text-sm text-green-light/40">{currentWord.notes}</div>
                 )}
               </div>
             ) : (
-              <div className="text-green-light/30 text-sm mt-4">Klik om het antwoord te zien</div>
+              <div className="text-green-light/30 text-sm mt-4">
+                Klik om het antwoord te zien
+              </div>
             )}
           </>
         )}
@@ -235,7 +252,9 @@ export default function FlashcardPractice() {
 
       {showAnswer && (
         <div>
-          <p className="text-center text-sm text-green-light/50 mb-3">Hoe goed kende je dit woord?</p>
+          <p className="text-center text-sm text-green-light/50 mb-3">
+            Hoe goed kende je dit woord?
+          </p>
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => handleScore(1)}
@@ -259,5 +278,20 @@ export default function FlashcardPractice() {
         </div>
       )}
     </div>
+  );
+}
+
+// useSearchParams() needs a Suspense boundary in Next.js App Router
+export default function FlashcardPractice() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-green border-t-transparent" />
+        </div>
+      }
+    >
+      <FlashcardPracticeInner />
+    </Suspense>
   );
 }
