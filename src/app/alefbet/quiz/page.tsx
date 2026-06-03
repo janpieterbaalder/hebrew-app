@@ -102,7 +102,10 @@ export default function AlefbetQuiz() {
         stats: {
           ...prev.stats,
           totalReviewed: prev.stats.totalReviewed + 1,
-          lettersLearned: correct ? learnedCount : prev.stats.lettersLearned,
+          // Always recompute from the cards: a wrong answer resets the card's
+          // repetitions, so the count can legitimately go down. Gating on
+          // `correct` previously let the counter overstate mastery.
+          lettersLearned: learnedCount,
         },
       });
 

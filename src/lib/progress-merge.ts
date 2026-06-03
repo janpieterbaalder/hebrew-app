@@ -24,24 +24,33 @@ export function mergeProgress(
     }
   }
 
+  // Streak and lastStudyDate must stay consistent with each other: take the
+  // streak belonging to whichever snapshot studied most recently (rather than
+  // Math.max, which could pair a high streak with a stale date).
+  const localMoreRecent =
+    local.stats.lastStudyDate >= remote.stats.lastStudyDate;
+  const lastStudyDate = localMoreRecent
+    ? local.stats.lastStudyDate
+    : remote.stats.lastStudyDate;
+  const streak =
+    local.stats.lastStudyDate === remote.stats.lastStudyDate
+      ? Math.max(local.stats.streak, remote.stats.streak)
+      : localMoreRecent
+        ? local.stats.streak
+        : remote.stats.streak;
+
   const mergedStats = {
     totalReviewed: Math.max(
       local.stats.totalReviewed,
       remote.stats.totalReviewed
     ),
-    streak: Math.max(local.stats.streak, remote.stats.streak),
-    lastStudyDate:
-      local.stats.lastStudyDate >= remote.stats.lastStudyDate
-        ? local.stats.lastStudyDate
-        : remote.stats.lastStudyDate,
-    wordsLearned: Math.max(
-      local.stats.wordsLearned,
-      remote.stats.wordsLearned
-    ),
-    lettersLearned: Math.max(
-      local.stats.lettersLearned,
-      remote.stats.lettersLearned
-    ),
+    streak,
+    lastStudyDate,
+    // wordsLearned/lettersLearned are derived counts, so recompute them from
+    // the merged cards. Math.max on the stored snapshots could inflate the
+    // count past what the actual cards support and never self-correct.
+    wordsLearned: countLearned(mergedCards, "vocab-"),
+    lettersLearned: countLearned(mergedCards, "letter-"),
     grammarCompleted: mergeStringArrays(
       local.stats.grammarCompleted ?? [],
       remote.stats.grammarCompleted ?? []
@@ -53,6 +62,18 @@ export function mergeProgress(
   };
 
   return { cards: mergedCards, stats: mergedStats };
+}
+
+// A card counts as "learned" once it has been recalled correctly at least
+// twice in a row (repetitions >= 2). Mirrors the definition used in the
+// exercise pages.
+function countLearned(
+  cards: Record<string, ReviewCard>,
+  idPrefix: string
+): number {
+  return Object.values(cards).filter(
+    (card) => card.id.startsWith(idPrefix) && card.repetitions >= 2
+  ).length;
 }
 
 function mergeStringArrays(a: string[], b: string[]): string[] {
