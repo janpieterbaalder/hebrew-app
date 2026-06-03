@@ -27,13 +27,16 @@ body {
 .hebrew {
   font-family: var(--font-hebrew);
   direction: rtl;
-  unicode-bidi: bidi-override;
+  /* isolate (not bidi-override) so multi-word Hebrew, verses with maqaf and
+     punctuation, and mixed Hebrew/Latin strings keep their correct visual
+     order instead of being force-reversed character by character. */
+  unicode-bidi: isolate;
 }
 
 .hebrew-large {
   font-family: var(--font-hebrew);
   direction: rtl;
-  unicode-bidi: bidi-override;
+  unicode-bidi: isolate;
   font-size: 2.5rem;
   line-height: 1.4;
 }
@@ -41,7 +44,7 @@ body {
 .hebrew-xl {
   font-family: var(--font-hebrew);
   direction: rtl;
-  unicode-bidi: bidi-override;
+  unicode-bidi: isolate;
   font-size: 4rem;
   line-height: 1.2;
 }

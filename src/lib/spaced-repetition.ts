@@ -18,6 +18,30 @@ export type Quality = 0 | 1 | 2 | 3 | 4 | 5;
 // 4 - Correct with some hesitation
 // 5 - Perfect response
 
+// All scheduling works on calendar dates in the user's LOCAL timezone.
+// Using toISOString() (UTC) here caused "today"/streak/due-date to drift by a
+// day for users east/west of UTC (e.g. evening study in NL rolled to tomorrow).
+
+/** Format a Date as a local YYYY-MM-DD string. */
+export function toLocalDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/** Today's date as a local YYYY-MM-DD string. */
+export function todayLocal(): string {
+  return toLocalDateString(new Date());
+}
+
+/** Local YYYY-MM-DD string `days` days from today. */
+export function localDatePlusDays(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return toLocalDateString(date);
+}
+
 export function calculateNextReview(
   card: ReviewCard,
   quality: Quality
@@ -45,23 +69,18 @@ export function calculateNextReview(
     easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
   if (easeFactor < 1.3) easeFactor = 1.3;
 
-  const now = new Date();
-  const nextReview = new Date(now);
-  nextReview.setDate(nextReview.getDate() + interval);
-
   return {
     ...card,
     easeFactor,
     interval,
     repetitions,
-    nextReview: nextReview.toISOString().split("T")[0],
-    lastReview: now.toISOString().split("T")[0],
+    nextReview: localDatePlusDays(interval),
+    lastReview: todayLocal(),
   };
 }
 
 export function isDueForReview(card: ReviewCard): boolean {
-  const today = new Date().toISOString().split("T")[0];
-  return card.nextReview <= today;
+  return card.nextReview <= todayLocal();
 }
 
 export function createNewCard(id: string): ReviewCard {
@@ -70,7 +89,7 @@ export function createNewCard(id: string): ReviewCard {
     easeFactor: 2.5,
     interval: 0,
     repetitions: 0,
-    nextReview: new Date().toISOString().split("T")[0],
+    nextReview: todayLocal(),
   };
 }
 
@@ -122,21 +141,51 @@ function getDefaultProgress(): ProgressData {
 }
 
 export function updateStreak(progress: ProgressData): ProgressData {
-  const today = new Date().toISOString().split("T")[0];
-  const yesterday = new Date(Date.now() - 86400000)
-    .toISOString()
-    .split("T")[0];
+  const today = todayLocal();
+  const yesterday = localDatePlusDays(-1);
 
+  // Already studied today — nothing to update.
   if (progress.stats.lastStudyDate === today) {
     return progress;
   }
 
-  if (progress.stats.lastStudyDate === yesterday) {
-    progress.stats.streak += 1;
-  } else if (progress.stats.lastStudyDate !== today) {
-    progress.stats.streak = 1;
-  }
+  // Continue the streak if the last study day was yesterday, otherwise reset.
+  const streak = progress.stats.lastStudyDate === yesterday
+    ? progress.stats.streak + 1
+    : 1;
 
-  progress.stats.lastStudyDate = today;
-  return progress;
+  // Return a new object instead of mutating the input, so React state updates
+  // stay predictable.
+  return {
+    ...progress,
+    stats: {
+      ...progress.stats,
+      streak,
+      lastStudyDate: today,
+    },
+  };
+}
+
+/** Number of cards currently due for review, optionally filtered by id prefix. */
+export function countDueCards(
+  cards: Record<string, ReviewCard>,
+  idPrefix?: string
+): number {
+  return Object.values(cards).filter(
+    (card) =>
+      (!idPrefix || card.id.startsWith(idPrefix)) && isDueForReview(card)
+  ).length;
+}
+
+/** Cards due for review (oldest scheduled first), optionally filtered by prefix. */
+export function getDueCards(
+  cards: Record<string, ReviewCard>,
+  idPrefix?: string
+): ReviewCard[] {
+  return Object.values(cards)
+    .filter(
+      (card) =>
+        (!idPrefix || card.id.startsWith(idPrefix)) && isDueForReview(card)
+    )
+    .sort((a, b) => a.nextReview.localeCompare(b.nextReview));
 }

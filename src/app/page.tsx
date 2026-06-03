@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useProgress } from "@/components/ProgressContext";
+import { countDueCards } from "@/lib/spaced-repetition";
 
 const modules = [
   {
@@ -44,6 +45,7 @@ const modules = [
 
 export default function Dashboard() {
   const { progress, ready } = useProgress();
+  const dueCount = ready ? countDueCards(progress.cards, "vocab-") : 0;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -59,6 +61,26 @@ export default function Dashboard() {
           en werk je weg naar het lezen van echte bijbelteksten.
         </p>
       </div>
+
+      {ready && dueCount > 0 && (
+        <Link
+          href="/woordenschat/herhalen"
+          className="flex items-center justify-between gap-4 gradient-green rounded-xl border border-green-dark/50 p-4 mb-6 text-white shadow-md shadow-green-darkest/30 hover:opacity-95 transition-opacity"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🔁</span>
+            <div>
+              <div className="font-semibold">
+                {dueCount} woord{dueCount !== 1 ? "en" : ""} te herhalen vandaag
+              </div>
+              <div className="text-xs text-white/80">
+                Houd je woordenschat scherp met slim herhalen
+              </div>
+            </div>
+          </div>
+          <span className="text-lg shrink-0">→</span>
+        </Link>
+      )}
 
       {ready && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">

@@ -1082,7 +1082,7 @@ export const grammarLessons: GrammarLesson[] = [
         content: "Bij de Hitpa'el treden soms klankveranderingen op in het prefix הִתְ:\n1. Metathesis (omwisseling): als de eerste wortelconsonant een sibilant is (שׂ, שׁ, ס, צ), wisselen de תְ en de sibilant van plaats.\n2. Assimilatie: als de eerste wortelconsonant een ט, ד of ת is, assimileert de תְ soms.",
         examples: [
           { hebrew: "הִשְׁתַּמֵּר (in plaats van הִתְשַׁמֵּר)", transliteration: "hishtammer", dutch: "zich hoeden", explanation: "Metathesis: תְ en שׁ wisselen van plaats." },
-          { hebrew: "הִצְטַדֵּק (in plaats van הִתְצַדֵּק)", transliteration: "hitstasddeq", dutch: "zich rechtvaardigen", explanation: "Metathesis en assimilatie bij צ." },
+          { hebrew: "הִצְטַדֵּק (in plaats van הִתְצַדֵּק)", transliteration: "hitstaddeq", dutch: "zich rechtvaardigen", explanation: "Metathesis en assimilatie bij צ." },
         ],
       },
       {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { vocabulary } from "@/data/vocabulary";
+import { countDueCards } from "@/lib/spaced-repetition";
 import { useProgress } from "@/components/ProgressContext";
 
 const STACK_SIZE = 20;
@@ -13,6 +14,7 @@ export default function WoordenscatPage() {
   const completedStackNumbers = ready
     ? (progress.stats.completedStacks ?? [])
     : [];
+  const dueCount = ready ? countDueCards(progress.cards, "vocab-") : 0;
 
   const stacks = Array.from({ length: NUM_STACKS }, (_, i) => {
     const stapelNumber = i + 1;
@@ -51,6 +53,33 @@ export default function WoordenscatPage() {
           </div>
         )}
       </div>
+
+      {/* Spaced-repetition review CTA */}
+      {ready && (
+        <Link
+          href="/woordenschat/herhalen"
+          className={`flex items-center justify-between gap-4 rounded-xl border p-4 mb-6 transition-all ${
+            dueCount > 0
+              ? "gradient-green border-green-dark/50 text-white shadow-md shadow-green-darkest/30 hover:opacity-95"
+              : "gradient-card border-green-darkest/50 text-green-light/70 hover:border-green-dark/50"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🔁</span>
+            <div>
+              <div className="font-semibold">
+                {dueCount > 0
+                  ? `${dueCount} woord${dueCount !== 1 ? "en" : ""} te herhalen`
+                  : "Niets te herhalen vandaag"}
+              </div>
+              <div className={`text-xs ${dueCount > 0 ? "text-white/80" : "text-green-light/50"}`}>
+                Slim herhalen op basis van je leervoortgang
+              </div>
+            </div>
+          </div>
+          <span className="text-lg shrink-0">→</span>
+        </Link>
+      )}
 
       {/* Overall progress bar */}
       {ready && (
