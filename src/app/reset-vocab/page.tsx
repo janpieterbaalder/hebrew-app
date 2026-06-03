@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { resetVocabAction } from "@/lib/actions";
+import { TrashIcon, CheckCircleIcon } from "@/components/icons";
 
 const STORAGE_KEY = "hebrew-app-progress";
 
@@ -43,7 +44,11 @@ export default function ResetVocabPage() {
     <div className="max-w-md mx-auto px-4 py-20 text-center">
       {status === "done" ? (
         <>
-          <div className="text-5xl mb-4">✓</div>
+          <div className="flex justify-center mb-4">
+            <span className="w-16 h-16 rounded-2xl gradient-green flex items-center justify-center text-white shadow-lg shadow-primary/30">
+              <CheckCircleIcon className="w-8 h-8" />
+            </span>
+          </div>
           <h1 className="text-2xl font-bold text-green-lightest mb-2">
             Woordenschat-voortgang gewist
           </h1>
@@ -60,7 +65,11 @@ export default function ResetVocabPage() {
         </>
       ) : (
         <>
-          <div className="text-5xl mb-4">🗑️</div>
+          <div className="flex justify-center mb-4">
+            <span className="w-16 h-16 rounded-2xl bg-danger/15 border border-danger/30 flex items-center justify-center text-danger">
+              <TrashIcon className="w-8 h-8" />
+            </span>
+          </div>
           <h1 className="text-2xl font-bold text-green-lightest mb-2">
             Woordenschat-voortgang wissen?
           </h1>

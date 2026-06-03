@@ -1,15 +1,40 @@
 "use client";
 
 import Link from "next/link";
+import type { ComponentType, ReactNode } from "react";
 import { useProgress } from "@/components/ProgressContext";
 import { countDueCards } from "@/lib/spaced-repetition";
+import {
+  LayersIcon,
+  BookIcon,
+  ScrollIcon,
+  FlameIcon,
+  TypeIcon,
+  CheckCircleIcon,
+  RepeatIcon,
+  ArrowRightIcon,
+} from "@/components/icons";
 
-const modules = [
+type ModuleIcon = ComponentType<{ className?: string }>;
+
+function Aleph({ className }: { className?: string }) {
+  return <span className={`hebrew leading-none ${className ?? ""}`}>א</span>;
+}
+
+const modules: {
+  href: string;
+  title: string;
+  description: string;
+  icon: ModuleIcon;
+  gradient: string;
+  progressKey: string | null;
+  total: number | null;
+}[] = [
   {
     href: "/alefbet",
     title: "Het Alefbet",
     description: "Leer de 22 Hebreeuwse letters, eindletters, en klinkertekens (nikkud) herkennen.",
-    icon: "א",
+    icon: Aleph,
     gradient: "gradient-green",
     progressKey: "lettersLearned",
     total: 22,
@@ -18,7 +43,7 @@ const modules = [
     href: "/woordenschat",
     title: "Woordenschat",
     description: "De 500 meest voorkomende woorden in de Hebreeuwse Bijbel met flashcards.",
-    icon: "📚",
+    icon: LayersIcon,
     gradient: "gradient-green-light",
     progressKey: "wordsLearned",
     total: 500,
@@ -27,7 +52,7 @@ const modules = [
     href: "/grammatica",
     title: "Grammatica",
     description: "Werkwoordsstammen, vervoegingen, constructus en meer.",
-    icon: "📖",
+    icon: BookIcon,
     gradient: "gradient-green",
     progressKey: null,
     total: 20,
@@ -36,7 +61,7 @@ const modules = [
     href: "/bijbel",
     title: "Bijbeltekst lezen",
     description: "Lees Genesis woord voor woord met grammaticale analyse.",
-    icon: "📜",
+    icon: ScrollIcon,
     gradient: "gradient-green-light",
     progressKey: null,
     total: null,
@@ -53,10 +78,10 @@ export default function Dashboard() {
         <h1 className="text-4xl font-bold text-green-lightest mb-2">
           <span className="hebrew text-5xl text-green">עִבְרִית</span>
         </h1>
-        <h2 className="text-2xl font-semibold text-green-light mb-2">
+        <h2 className="text-2xl font-semibold text-gradient mb-2">
           Bijbels Hebreeuws Leren
         </h2>
-        <p className="text-green-light/60 max-w-lg mx-auto">
+        <p className="text-green-light/70 max-w-lg mx-auto">
           Leer stap voor stap de Hebreeuwse Bijbel lezen. Begin met het alfabet
           en werk je weg naar het lezen van echte bijbelteksten.
         </p>
@@ -68,7 +93,9 @@ export default function Dashboard() {
           className="flex items-center justify-between gap-4 gradient-green rounded-xl border border-green-dark/50 p-4 mb-6 text-white shadow-md shadow-green-darkest/30 hover:opacity-95 transition-opacity"
         >
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🔁</span>
+            <span className="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+              <RepeatIcon className="w-5 h-5" />
+            </span>
             <div>
               <div className="font-semibold">
                 {dueCount} woord{dueCount !== 1 ? "en" : ""} te herhalen vandaag
@@ -78,31 +105,33 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          <span className="text-lg shrink-0">→</span>
+          <ArrowRightIcon className="w-5 h-5 shrink-0" />
         </Link>
       )}
 
       {ready && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <StatCard label="Dagen streak" value={progress.stats.streak} icon="🔥" />
-          <StatCard label="Letters geleerd" value={progress.stats.lettersLearned} icon="א" />
-          <StatCard label="Woorden geleerd" value={progress.stats.wordsLearned} icon="📝" />
-          <StatCard label="Totaal geoefend" value={progress.stats.totalReviewed} icon="✓" />
+          <StatCard label="Dagen streak" value={progress.stats.streak} icon={<FlameIcon className="w-5 h-5" />} />
+          <StatCard label="Letters geleerd" value={progress.stats.lettersLearned} icon={<Aleph className="text-xl" />} />
+          <StatCard label="Woorden geleerd" value={progress.stats.wordsLearned} icon={<TypeIcon className="w-5 h-5" />} />
+          <StatCard label="Totaal geoefend" value={progress.stats.totalReviewed} icon={<CheckCircleIcon className="w-5 h-5" />} />
         </div>
       )}
 
       <div className="grid md:grid-cols-2 gap-6">
-        {modules.map((mod) => (
+        {modules.map((mod) => {
+          const ModIcon = mod.icon;
+          return (
           <Link
             key={mod.href}
             href={mod.href}
-            className="group block gradient-card rounded-xl border border-green-darkest/50 p-6 shadow-lg shadow-black/20 hover:border-green-dark/70 hover:shadow-green-darkest/30 transition-all"
+            className="group block gradient-card rounded-2xl border border-green-darkest/50 p-6 shadow-lg shadow-black/20 hover:border-green-dark/70 hover:shadow-primary/20 transition-all"
           >
             <div className="flex items-start gap-4">
               <div
-                className={`${mod.gradient} text-white w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 shadow-md`}
+                className={`${mod.gradient} text-white w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 shadow-md shadow-primary/30`}
               >
-                {mod.icon}
+                <ModIcon className="w-6 h-6" />
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-green-lightest group-hover:text-green-light transition-colors">
@@ -137,10 +166,11 @@ export default function Dashboard() {
               </div>
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="mt-10 gradient-card border border-green-darkest/50 rounded-xl p-6">
+      <div className="mt-10 gradient-card border border-green-darkest/50 rounded-2xl p-6">
         <h3 className="font-semibold text-green-lightest mb-3">
           Aanbevolen leerpad
         </h3>
@@ -173,13 +203,17 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  icon: string;
+  icon: ReactNode;
 }) {
   return (
-    <div className="gradient-card rounded-xl border border-green-darkest/50 p-4 text-center">
-      <div className="text-2xl mb-1">{icon}</div>
+    <div className="gradient-card rounded-2xl border border-green-darkest/50 p-4 text-center">
+      <div className="flex justify-center mb-2 text-green">
+        <span className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
+          {icon}
+        </span>
+      </div>
       <div className="text-2xl font-bold text-green-lightest">{value}</div>
-      <div className="text-xs text-green-light/40">{label}</div>
+      <div className="text-xs text-green-light/60">{label}</div>
     </div>
   );
 }

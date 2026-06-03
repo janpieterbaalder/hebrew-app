@@ -5,6 +5,7 @@ import { vocabulary, type VocabWord } from "@/data/vocabulary";
 import { getDueCards } from "@/lib/spaced-repetition";
 import { useProgress } from "@/components/ProgressContext";
 import FlashcardSession from "@/components/FlashcardSession";
+import { CheckCircleIcon } from "@/components/icons";
 
 const wordById = new Map<number, VocabWord>(vocabulary.map((w) => [w.id, w]));
 
@@ -28,7 +29,11 @@ export default function ReviewPage() {
   if (dueWords.length === 0) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center">
-        <div className="text-6xl mb-4">✅</div>
+        <div className="flex justify-center mb-5">
+          <span className="w-20 h-20 rounded-2xl gradient-green flex items-center justify-center text-white shadow-lg shadow-primary/30">
+            <CheckCircleIcon className="w-9 h-9" />
+          </span>
+        </div>
         <h1 className="text-2xl font-bold text-green-lightest mb-2">
           Niets te herhalen
         </h1>

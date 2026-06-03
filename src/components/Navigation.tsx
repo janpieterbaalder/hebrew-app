@@ -2,14 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ComponentType, SVGProps } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { HomeIcon, LayersIcon, BookIcon, ScrollIcon } from "@/components/icons";
 
-const navItems = [
-  { href: "/", label: "Dashboard", icon: "🏠" },
-  { href: "/alefbet", label: "Alefbet", icon: "א" },
-  { href: "/woordenschat", label: "Woordenschat", icon: "📚" },
-  { href: "/grammatica", label: "Grammatica", icon: "📖" },
-  { href: "/bijbel", label: "Bijbeltekst", icon: "📜" },
+// The aleph is the subject of the app, so it stays as a typographic glyph
+// rather than an icon.
+function AlephGlyph({ className }: { className?: string }) {
+  return <span className={`hebrew leading-none ${className ?? ""}`}>א</span>;
+}
+
+type NavIcon = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
+
+const navItems: { href: string; label: string; icon: NavIcon }[] = [
+  { href: "/", label: "Dashboard", icon: HomeIcon },
+  { href: "/alefbet", label: "Alefbet", icon: AlephGlyph as NavIcon },
+  { href: "/woordenschat", label: "Woordenschat", icon: LayersIcon },
+  { href: "/grammatica", label: "Grammatica", icon: BookIcon },
+  { href: "/bijbel", label: "Bijbeltekst", icon: ScrollIcon },
 ];
 
 export default function Navigation() {
@@ -33,17 +43,19 @@ export default function Navigation() {
                 item.href === "/"
                   ? pathname === "/"
                   : pathname.startsWith(item.href);
+              const ItemIcon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  aria-current={isActive ? "page" : undefined}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? "gradient-green text-white shadow-md shadow-green-darkest/50"
+                      ? "gradient-green text-white shadow-md shadow-primary/30"
                       : "text-green-light/70 hover:bg-surface-light hover:text-green-light"
                   }`}
                 >
-                  <span>{item.icon}</span>
+                  <ItemIcon className="w-4 h-4" />
                   {item.label}
                 </Link>
               );
@@ -105,18 +117,20 @@ function MobileMenu({ pathname }: { pathname: string }) {
           item.href === "/"
             ? pathname === "/"
             : pathname.startsWith(item.href);
+        const ItemIcon = item.icon;
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`p-2 rounded-lg text-lg ${
+            aria-label={item.label}
+            aria-current={isActive ? "page" : undefined}
+            className={`p-2.5 rounded-lg ${
               isActive
                 ? "gradient-green text-white"
-                : "text-green-light/50 hover:bg-surface-light"
+                : "text-green-light/60 hover:bg-surface-light"
             }`}
-            title={item.label}
           >
-            {item.icon}
+            <ItemIcon className="w-5 h-5" />
           </Link>
         );
       })}
