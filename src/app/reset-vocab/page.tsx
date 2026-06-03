@@ -1,53 +1,55 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { resetVocabAction } from "@/lib/actions";
+
+const STORAGE_KEY = "hebrew-app-progress";
 
 export default function ResetVocabPage() {
-  const [done, setDone] = useState(false);
+  const [status, setStatus] = useState<"idle" | "working" | "done">("idle");
 
-  useEffect(() => {
-    const STORAGE_KEY = "hebrew-app-progress";
+  async function handleReset() {
+    setStatus("working");
+
+    // Clear vocab cards + counters from localStorage.
     const raw = localStorage.getItem(STORAGE_KEY);
-
     if (raw) {
-      const data = JSON.parse(raw);
-
-      // Verwijder alle vocab-kaarten
-      const cleanedCards: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(data.cards ?? {})) {
-        if (!key.startsWith("vocab-")) {
-          cleanedCards[key] = value;
+      try {
+        const data = JSON.parse(raw);
+        const cleanedCards: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(data.cards ?? {})) {
+          if (!key.startsWith("vocab-")) cleanedCards[key] = value;
         }
+        const cleaned = {
+          ...data,
+          cards: cleanedCards,
+          stats: { ...data.stats, wordsLearned: 0, completedStacks: [] },
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+      } catch {
+        // Corrupt local data — ignore and continue with the server reset.
       }
-
-      // Reset words_learned naar 0
-      const cleaned = {
-        ...data,
-        cards: cleanedCards,
-        stats: {
-          ...data.stats,
-          wordsLearned: 0,
-        },
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
     }
 
-    setDone(true);
-  }, []);
+    // Clear it on the server too, otherwise it would be merged back on the
+    // next load (and re-appear on other devices).
+    await resetVocabAction().catch(() => {});
+
+    setStatus("done");
+  }
 
   return (
     <div className="max-w-md mx-auto px-4 py-20 text-center">
-      {done ? (
+      {status === "done" ? (
         <>
           <div className="text-5xl mb-4">✓</div>
           <h1 className="text-2xl font-bold text-green-lightest mb-2">
             Woordenschat-voortgang gewist
           </h1>
           <p className="text-green-light/60 mb-6 text-sm">
-            Vocab-kaarten en woorden-teller zijn verwijderd uit deze browser.
-            Je alefbet-progressie is intact.
+            Vocab-kaarten en woorden-teller zijn verwijderd, zowel in deze
+            browser als op de server. Je alefbet-progressie is intact.
           </p>
           <Link
             href="/"
@@ -57,7 +59,32 @@ export default function ResetVocabPage() {
           </Link>
         </>
       ) : (
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-green border-t-transparent mx-auto" />
+        <>
+          <div className="text-5xl mb-4">🗑️</div>
+          <h1 className="text-2xl font-bold text-green-lightest mb-2">
+            Woordenschat-voortgang wissen?
+          </h1>
+          <p className="text-green-light/60 mb-6 text-sm">
+            Dit verwijdert al je woordenschat-kaarten en zet de woorden-teller
+            op 0. Je alefbet- en grammatica-voortgang blijft behouden. Deze
+            actie kan niet ongedaan worden gemaakt.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={handleReset}
+              disabled={status === "working"}
+              className="bg-red-900/30 border border-red-500/40 text-red-300 px-6 py-2.5 rounded-lg font-medium hover:bg-red-900/40 transition-colors disabled:opacity-50"
+            >
+              {status === "working" ? "Bezig..." : "Ja, wissen"}
+            </button>
+            <Link
+              href="/"
+              className="bg-surface-light text-green-light border border-green-darkest/50 px-6 py-2.5 rounded-lg font-medium hover:bg-surface-lighter transition-colors"
+            >
+              Annuleren
+            </Link>
+          </div>
+        </>
       )}
     </div>
   );

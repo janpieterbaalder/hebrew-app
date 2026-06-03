@@ -67,19 +67,23 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         console.error("Initial sync to server failed:", err)
       );
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // After every progress update (once ready), persist to localStorage and Neon.
+  // After every progress update (once ready), persist to localStorage
+  // immediately and debounce the server sync. Debouncing coalesces rapid
+  // answers (e.g. clicking through a flashcard stack) into a single network
+  // round-trip instead of one per card.
   useEffect(() => {
     if (!ready) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-    startTransition(async () => {
-      await syncProgressAction(progress).catch((err) =>
-        console.error("Sync failed:", err)
-      );
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const timeout = setTimeout(() => {
+      startTransition(async () => {
+        await syncProgressAction(progress).catch((err) =>
+          console.error("Sync failed:", err)
+        );
+      });
+    }, 800);
+    return () => clearTimeout(timeout);
   }, [progress, ready]);
 
   // Pure setState updater — no side effects inside.

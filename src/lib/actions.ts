@@ -7,12 +7,34 @@ import type { ProgressData, ReviewCard } from "@/lib/spaced-repetition";
 
 // ─── Auth Actions ───
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 6;
+
+// Normalise emails so logins are case-insensitive and free of stray
+// whitespace, preventing accidental duplicate accounts (e.g. "A@x.nl"
+// vs "a@x.nl").
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 export async function registerAction(
   email: string,
   password: string
 ): Promise<{ success: boolean; error?: string }> {
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!EMAIL_REGEX.test(normalizedEmail)) {
+    return { success: false, error: "Voer een geldig e-mailadres in." };
+  }
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return {
+      success: false,
+      error: `Wachtwoord moet minimaal ${MIN_PASSWORD_LENGTH} tekens bevatten.`,
+    };
+  }
+
   try {
-    const existing = await sql`SELECT id FROM users WHERE email = ${email}`;
+    const existing = await sql`SELECT id FROM users WHERE email = ${normalizedEmail}`;
     if (existing.length > 0) {
       return { success: false, error: "Dit e-mailadres is al geregistreerd." };
     }
@@ -20,11 +42,11 @@ export async function registerAction(
     const passwordHash = await hash(password, 12);
     const result = await sql`
       INSERT INTO users (email, password_hash)
-      VALUES (${email}, ${passwordHash})
+      VALUES (${normalizedEmail}, ${passwordHash})
       RETURNING id
     `;
 
-    await createSession(result[0].id, email);
+    await createSession(result[0].id, normalizedEmail);
     return { success: true };
   } catch (err) {
     console.error("Register error:", err);
@@ -36,9 +58,15 @@ export async function loginAction(
   email: string,
   password: string
 ): Promise<{ success: boolean; error?: string }> {
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail || !password) {
+    return { success: false, error: "Vul je e-mailadres en wachtwoord in." };
+  }
+
   try {
     const rows = await sql`
-      SELECT id, password_hash FROM users WHERE email = ${email}
+      SELECT id, password_hash FROM users WHERE email = ${normalizedEmail}
     `;
     if (rows.length === 0) {
       return { success: false, error: "Ongeldig e-mailadres of wachtwoord." };
@@ -49,7 +77,7 @@ export async function loginAction(
       return { success: false, error: "Ongeldig e-mailadres of wachtwoord." };
     }
 
-    await createSession(rows[0].id, email);
+    await createSession(rows[0].id, normalizedEmail);
     return { success: true };
   } catch (err) {
     console.error("Login error:", err);
@@ -77,11 +105,13 @@ export async function syncProgressAction(
   if (!session) return;
 
   const userId = session.userId;
+  const s = progress.stats;
 
-  // Sync cards using INSERT ... ON CONFLICT DO UPDATE (real upsert)
-  const cards = Object.values(progress.cards);
-  for (const card of cards) {
-    await sql`
+  // Build all card upserts plus the stats upsert and send them as a single
+  // batched HTTP transaction. Previously each card was a separate round-trip,
+  // so one study session could fire hundreds of sequential queries.
+  const queries = Object.values(progress.cards).map(
+    (card) => sql`
       INSERT INTO user_progress (user_id, card_id, ease_factor, interval_days, repetitions, next_review, last_review)
       VALUES (${userId}, ${card.id}, ${card.easeFactor}, ${card.interval}, ${card.repetitions}, ${card.nextReview}, ${card.lastReview ?? null})
       ON CONFLICT (user_id, card_id)
@@ -91,12 +121,10 @@ export async function syncProgressAction(
         repetitions = ${card.repetitions},
         next_review = ${card.nextReview},
         last_review = ${card.lastReview ?? null}
-    `;
-  }
+    `
+  );
 
-  // Sync stats
-  const s = progress.stats;
-  await sql`
+  queries.push(sql`
     INSERT INTO user_stats (user_id, total_reviewed, streak, last_study_date, words_learned, letters_learned, grammar_completed, completed_stacks)
     VALUES (${userId}, ${s.totalReviewed}, ${s.streak}, ${s.lastStudyDate || null}, ${s.wordsLearned}, ${s.lettersLearned}, ${JSON.stringify(s.grammarCompleted ?? [])}, ${JSON.stringify(s.completedStacks ?? [])})
     ON CONFLICT (user_id)
@@ -108,7 +136,28 @@ export async function syncProgressAction(
       letters_learned = ${s.lettersLearned},
       grammar_completed = ${JSON.stringify(s.grammarCompleted ?? [])},
       completed_stacks = ${JSON.stringify(s.completedStacks ?? [])}
+  `);
+
+  await sql.transaction(queries);
+}
+
+// Clear all vocabulary progress for the signed-in user, both the per-word
+// review cards and the words-learned counter. Used by the reset page so the
+// reset actually sticks across devices (otherwise the server would re-merge
+// the cleared cards back on next load).
+export async function resetVocabAction(): Promise<{ success: boolean }> {
+  const session = await getSession();
+  if (!session) return { success: false };
+
+  await sql`
+    DELETE FROM user_progress
+    WHERE user_id = ${session.userId} AND card_id LIKE 'vocab-%'
   `;
+  await sql`
+    UPDATE user_stats SET words_learned = 0, completed_stacks = ${JSON.stringify([])}
+    WHERE user_id = ${session.userId}
+  `;
+  return { success: true };
 }
 
 export async function loadProgressAction(): Promise<ProgressData> {
@@ -123,6 +172,7 @@ export async function loadProgressAction(): Promise<ProgressData> {
         wordsLearned: 0,
         lettersLearned: 0,
         grammarCompleted: [],
+        completedStacks: [],
       },
     };
   }
