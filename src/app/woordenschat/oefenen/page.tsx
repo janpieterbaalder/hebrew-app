@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { vocabulary } from "@/data/vocabulary";
@@ -13,6 +13,7 @@ import {
 import { useProgress } from "@/components/ProgressContext";
 
 const STACK_SIZE = 20;
+const NUM_STACKS = Math.ceil(vocabulary.length / STACK_SIZE);
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -25,38 +26,24 @@ function shuffleArray<T>(array: T[]): T[] {
 
 type FlashcardMode = "hebrew-to-dutch" | "dutch-to-hebrew";
 
-function FlashcardPracticeInner() {
+function FlashcardPracticeInner({ stapelNumber }: { stapelNumber: number }) {
   const { ready, updateProgress } = useProgress();
-  const searchParams = useSearchParams();
 
-  // Determine which stack to practice (1-based, default 1)
-  const stapelParam = searchParams.get("stapel");
-  const stapelNumber = stapelParam
-    ? Math.max(1, Math.min(25, parseInt(stapelParam, 10)))
-    : 1;
   const wordStart = (stapelNumber - 1) * STACK_SIZE;
   const wordEnd = Math.min(wordStart + STACK_SIZE, vocabulary.length);
-  const totalStacks = Math.ceil(vocabulary.length / STACK_SIZE);
+  const totalStacks = NUM_STACKS;
 
   const [mode, setMode] = useState<FlashcardMode>("hebrew-to-dutch");
   const [showAnswer, setShowAnswer] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  // Initialise with the correct stack immediately — NOT based on progress,
-  // so this never re-fires when progress changes (Bug 2 fix).
-  const [words, setWords] = useState(() =>
+  // Initialise with the correct stack immediately. The component is keyed on
+  // stapelNumber by its parent, so navigating to a different stack remounts it
+  // and re-runs this initializer — no reset effect required.
+  const [words] = useState(() =>
     shuffleArray(vocabulary.slice(wordStart, wordEnd))
   );
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
-
-  // When the stapel URL param changes, reset the session for the new stack.
-  useEffect(() => {
-    setWords(shuffleArray(vocabulary.slice(wordStart, wordEnd)));
-    setCurrentIndex(0);
-    setShowAnswer(false);
-    setSessionScore({ correct: 0, total: 0 });
-    setSessionComplete(false);
-  }, [wordStart, wordEnd]);
 
   const handleScore = useCallback(
     (quality: Quality) => {
@@ -107,7 +94,7 @@ function FlashcardPracticeInner() {
         setShowAnswer(false);
       }
     },
-    [words, currentIndex, updateProgress]
+    [words, currentIndex, updateProgress, wordStart, wordEnd, stapelNumber]
   );
 
   if (!ready) {
@@ -294,6 +281,21 @@ function FlashcardPracticeInner() {
   );
 }
 
+// Reads the ?stapel param and keys the practice session on it, so switching
+// stacks remounts the session with a fresh shuffle instead of resetting via
+// an effect.
+function FlashcardPracticeLoader() {
+  const searchParams = useSearchParams();
+  const stapelParam = searchParams.get("stapel");
+  const stapelNumber = stapelParam
+    ? Math.max(1, Math.min(NUM_STACKS, parseInt(stapelParam, 10)))
+    : 1;
+
+  return (
+    <FlashcardPracticeInner key={stapelNumber} stapelNumber={stapelNumber} />
+  );
+}
+
 // useSearchParams() needs a Suspense boundary in Next.js App Router
 export default function FlashcardPractice() {
   return (
@@ -304,7 +306,7 @@ export default function FlashcardPractice() {
         </div>
       }
     >
-      <FlashcardPracticeInner />
+      <FlashcardPracticeLoader />
     </Suspense>
   );
 }

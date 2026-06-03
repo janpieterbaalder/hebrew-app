@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { alphabet } from "@/data/alphabet";
 import {
@@ -12,6 +12,7 @@ import {
 import { useProgress } from "@/components/ProgressContext";
 
 type QuizMode = "name" | "sound";
+type Letter = (typeof alphabet)[number];
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -22,47 +23,51 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
+function answerFor(letter: Letter, mode: QuizMode): string {
+  return mode === "name" ? letter.name : letter.sound.split(" ")[0];
+}
+
+// Build a shuffled set of one correct + three wrong answers for a letter.
+// Pure function so the options can be derived with useMemo instead of being
+// pushed into state from an effect.
+function buildOptions(letter: Letter, mode: QuizMode): string[] {
+  const correctAnswer = answerFor(letter, mode);
+  const wrongAnswers = shuffleArray(alphabet.filter((l) => l.id !== letter.id))
+    .slice(0, 3)
+    .map((l) => answerFor(l, mode));
+  return shuffleArray([correctAnswer, ...wrongAnswers]);
+}
+
 export default function AlefbetQuiz() {
-  const { progress, ready, updateProgress } = useProgress();
+  const { ready, updateProgress } = useProgress();
   const [mode, setMode] = useState<QuizMode>("name");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [options, setOptions] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
-  const [quizLetters, setQuizLetters] = useState(alphabet);
+  const [quizLetters, setQuizLetters] = useState(() =>
+    shuffleArray([...alphabet])
+  );
   const [quizComplete, setQuizComplete] = useState(false);
 
-  const generateOptions = useCallback(
-    (letterIndex: number, letters: typeof alphabet) => {
-      const current = letters[letterIndex];
-      const correctAnswer =
-        mode === "name" ? current.name : current.sound.split(" ")[0];
-      const otherLetters = alphabet.filter((l) => l.id !== current.id);
-      const wrongAnswers = shuffleArray(otherLetters)
-        .slice(0, 3)
-        .map((l) => (mode === "name" ? l.name : l.sound.split(" ")[0]));
-      setOptions(shuffleArray([correctAnswer, ...wrongAnswers]));
-    },
-    [mode]
-  );
+  // Options are derived from the current letter + mode. useMemo keeps them
+  // stable for a given question (it only reshuffles when the question or mode
+  // changes), so no effect/extra state is needed.
+  const options = useMemo(() => {
+    const current = quizLetters[currentIndex];
+    return current ? buildOptions(current, mode) : [];
+  }, [quizLetters, currentIndex, mode]);
 
-  useEffect(() => {
-    const shuffled = shuffleArray([...alphabet]);
-    setQuizLetters(shuffled);
+  // Reset the quiz to a fresh shuffled run, optionally switching mode.
+  const restartQuiz = useCallback((nextMode?: QuizMode) => {
+    setQuizLetters(shuffleArray([...alphabet]));
     setCurrentIndex(0);
     setScore({ correct: 0, total: 0 });
     setQuizComplete(false);
     setSelected(null);
     setIsCorrect(null);
-    generateOptions(0, shuffled);
-  }, [mode, generateOptions]);
-
-  useEffect(() => {
-    if (quizLetters.length > 0 && currentIndex < quizLetters.length) {
-      generateOptions(currentIndex, quizLetters);
-    }
-  }, [currentIndex, quizLetters, generateOptions]);
+    if (nextMode) setMode(nextMode);
+  }, []);
 
   const handleAnswer = (answer: string) => {
     if (selected !== null) return;
@@ -139,15 +144,7 @@ export default function AlefbetQuiz() {
         </p>
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => {
-              const shuffled = shuffleArray([...alphabet]);
-              setQuizLetters(shuffled);
-              setCurrentIndex(0);
-              setScore({ correct: 0, total: 0 });
-              setQuizComplete(false);
-              setSelected(null);
-              setIsCorrect(null);
-            }}
+            onClick={() => restartQuiz()}
             className="gradient-green text-white px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-md"
           >
             Opnieuw
@@ -174,7 +171,7 @@ export default function AlefbetQuiz() {
         </Link>
         <div className="flex gap-2">
           <button
-            onClick={() => setMode("name")}
+            onClick={() => mode !== "name" && restartQuiz("name")}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
               mode === "name"
                 ? "gradient-green text-white"
@@ -184,7 +181,7 @@ export default function AlefbetQuiz() {
             Naam
           </button>
           <button
-            onClick={() => setMode("sound")}
+            onClick={() => mode !== "sound" && restartQuiz("sound")}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
               mode === "sound"
                 ? "gradient-green text-white"
