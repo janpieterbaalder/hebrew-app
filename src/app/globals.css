@@ -1,26 +1,35 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-green-darkest: #235D3A;
-  --color-green-dark: #397D54;
-  --color-green: #73C088;
-  --color-green-light: #A8E0B7;
-  --color-green-lightest: #C8EAD1;
-  --color-primary: #73C088;
-  --color-primary-light: #A8E0B7;
-  --color-primary-dark: #397D54;
-  --color-accent: #A8E0B7;
-  --color-surface: #0f1a14;
-  --color-surface-light: #162119;
-  --color-surface-lighter: #1c2b22;
-  --color-danger: #ef4444;
+  /* Indigo → violet palette on a deep navy canvas.
+     The token names are kept (green-*) for backwards compatibility with the
+     existing utility classes, but the values are now blue/violet. */
+  --color-green-darkest: #2a2f5e; /* borders */
+  --color-green-dark: #4a55c0; /* hover borders, subtle chevrons */
+  --color-green: #8b93ff; /* brand accent: icons, links, highlights */
+  --color-green-light: #c4c9f0; /* secondary text */
+  --color-green-lightest: #eef0ff; /* headings */
+  --color-primary: #6366f1;
+  --color-primary-light: #a78bfa;
+  --color-primary-dark: #4f46e5;
+  --color-accent: #c084fc;
+  --color-surface: #121937; /* card base */
+  --color-surface-light: #1a2347;
+  --color-surface-lighter: #232c59;
+  --color-danger: #f43f5e;
   --font-sans: var(--font-geist-sans);
   --font-hebrew: "SBL Hebrew", "Frank Ruehl CLM", "Ezra SIL", "Times New Roman", serif;
 }
 
 body {
-  background: #0a1410;
-  color: #e2efe7;
+  /* Deep navy with soft blue/violet glows in the top corners, echoing the
+     reference design. */
+  background:
+    radial-gradient(1100px 560px at 0% -10%, rgba(79, 124, 255, 0.18), transparent 60%),
+    radial-gradient(1000px 520px at 100% -5%, rgba(192, 132, 252, 0.16), transparent 55%),
+    #0a0e22;
+  background-attachment: fixed;
+  color: #dfe2f5;
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
@@ -49,20 +58,31 @@ body {
   line-height: 1.2;
 }
 
+/* Gradient text for headings / numbers, like the reference UI. */
+.text-gradient {
+  background: linear-gradient(135deg, #8ba4ff 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 /* Gradient utilities */
 .gradient-card {
-  background: linear-gradient(135deg, #162119 0%, #1c2b22 100%);
-  border-color: #235D3A;
+  background: linear-gradient(150deg, #141b3c 0%, #1b2348 100%);
+  border-color: #2a2f5e;
 }
 
 .gradient-green {
-  background: linear-gradient(135deg, #235D3A 0%, #397D54 100%);
+  background: linear-gradient(135deg, #4f7cff 0%, #9b5cf6 100%);
 }
 
 .gradient-green-light {
-  background: linear-gradient(135deg, #397D54 0%, #73C088 100%);
+  background: linear-gradient(135deg, #5b8cff 0%, #c084fc 100%);
 }
 
 .gradient-hero {
-  background: linear-gradient(180deg, #0f1a14 0%, #162119 50%, #1c2b22 100%);
+  background:
+    radial-gradient(700px 300px at 15% 0%, rgba(79, 124, 255, 0.35), transparent 60%),
+    radial-gradient(700px 320px at 100% 30%, rgba(192, 132, 252, 0.3), transparent 60%),
+    linear-gradient(150deg, #172049 0%, #221a4e 55%, #2f1d5e 100%);
 }

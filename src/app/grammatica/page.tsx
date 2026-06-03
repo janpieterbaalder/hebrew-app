@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { grammarLessons } from "@/data/grammar";
 import { useProgress } from "@/components/ProgressContext";
+import { CheckIcon, ChevronRightIcon } from "@/components/icons";
 
 export default function GrammaticaPage() {
   const { progress, ready } = useProgress();
@@ -36,10 +37,10 @@ export default function GrammaticaPage() {
                 <div className="flex items-center gap-4">
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold shrink-0 ${
-                      isDone ? "bg-green text-white" : "gradient-green text-white"
+                      isDone ? "bg-primary/20 text-green border border-green-dark/40" : "gradient-green text-white"
                     }`}
                   >
-                    {isDone ? "✓" : index + 1}
+                    {isDone ? <CheckIcon className="w-5 h-5" /> : index + 1}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-green-lightest group-hover:text-green-light transition-colors">
@@ -49,9 +50,7 @@ export default function GrammaticaPage() {
                       {lesson.summary}
                     </p>
                   </div>
-                  <div className="text-green-dark group-hover:text-green transition-colors">
-                    →
-                  </div>
+                  <ChevronRightIcon className="w-5 h-5 text-green-dark group-hover:text-green transition-colors shrink-0" />
                 </div>
               </Link>
             );

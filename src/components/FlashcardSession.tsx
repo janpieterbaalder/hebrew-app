@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { SparkleIcon } from "@/components/icons";
 import { vocabulary, type VocabWord } from "@/data/vocabulary";
 import {
   createNewCard,
@@ -122,8 +123,10 @@ export default function FlashcardSession({
 
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center" role="status">
-        <div className="text-6xl mb-4">
-          {percentage >= 80 ? "🎉" : percentage >= 50 ? "👍" : "💪"}
+        <div className="flex justify-center mb-5">
+          <span className="w-20 h-20 rounded-2xl gradient-green flex items-center justify-center text-white shadow-lg shadow-primary/30">
+            <SparkleIcon className="w-9 h-9" />
+          </span>
         </div>
         <h1 className="text-3xl font-bold text-green-lightest mb-2">
           {title} voltooid!

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { vocabulary } from "@/data/vocabulary";
 import { countDueCards } from "@/lib/spaced-repetition";
 import { useProgress } from "@/components/ProgressContext";
+import { RepeatIcon, ArrowRightIcon, CheckIcon, ChevronRightIcon } from "@/components/icons";
 
 const STACK_SIZE = 20;
 const NUM_STACKS = Math.ceil(vocabulary.length / STACK_SIZE);
@@ -65,19 +66,21 @@ export default function WoordenscatPage() {
           }`}
         >
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🔁</span>
+            <span className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${dueCount > 0 ? "bg-white/15" : "bg-primary/15 text-green"}`}>
+              <RepeatIcon className="w-5 h-5" />
+            </span>
             <div>
               <div className="font-semibold">
                 {dueCount > 0
                   ? `${dueCount} woord${dueCount !== 1 ? "en" : ""} te herhalen`
                   : "Niets te herhalen vandaag"}
               </div>
-              <div className={`text-xs ${dueCount > 0 ? "text-white/80" : "text-green-light/50"}`}>
+              <div className={`text-xs ${dueCount > 0 ? "text-white/80" : "text-green-light/60"}`}>
                 Slim herhalen op basis van je leervoortgang
               </div>
             </div>
           </div>
-          <span className="text-lg shrink-0">→</span>
+          <ArrowRightIcon className="w-5 h-5 shrink-0" />
         </Link>
       )}
 
@@ -113,11 +116,11 @@ export default function WoordenscatPage() {
               <div
                 className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${
                   complete
-                    ? "bg-green text-white"
+                    ? "bg-primary/20 text-green border border-green-dark/40"
                     : "gradient-green text-white"
                 }`}
               >
-                {complete ? "✓" : stapelNumber}
+                {complete ? <CheckIcon className="w-5 h-5" /> : stapelNumber}
               </div>
 
               <div className="flex-1 min-w-0">
@@ -146,9 +149,7 @@ export default function WoordenscatPage() {
                 )}
               </div>
 
-              <div className="text-green-dark group-hover:text-green transition-colors shrink-0 text-lg">
-                →
-              </div>
+              <ChevronRightIcon className="w-5 h-5 text-green-dark group-hover:text-green transition-colors shrink-0" />
             </Link>
           );
         })}
